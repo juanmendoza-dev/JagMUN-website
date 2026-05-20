@@ -1,1 +1,1 @@
-# JagMUN-website-
+# JagMUN-website
