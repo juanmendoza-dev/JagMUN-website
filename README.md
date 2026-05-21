@@ -1,6 +1,6 @@
 # JAGMUN II — Official Website
 
-This is the official website for JAGMUN II, the second iteration of the Jaguar Model United Nations conference hosted at the University of Miami. The conference is scheduled for September 27-28, 2026.
+This is the official website for JAGMUN II, the second iteration of the Jaguar Model United Nations conference hosted at PPCHS.
 
 ## What this is
 
