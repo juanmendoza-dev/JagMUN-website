@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MicroVisuals — Hero</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+@font-face {
+  font-family: 'Dirtyline';
+  src: url('https://fonts.cdnfonts.com/s/15011/Dirtyline36DaysofType.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+html, body { background: #000; }
+body { font-family: 'Barlow', sans-serif; }
+
+.font-heading { font-family: 'Instrument Serif', serif; }
+.font-body { font-family: 'Barlow', sans-serif; }
+.font-dirtyline { font-family: 'Dirtyline', sans-serif; }
+
+/* Override Tailwind's `rounded` to full pill */
+.rounded { border-radius: 9999px !important; }
+
+.liquid-glass {
+  background: rgba(255,255,255,0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+  position: relative;
+  overflow: hidden;
+}
+.liquid-glass::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.45) 0%,
+    rgba(255,255,255,0.15) 20%,
+    rgba(255,255,255,0)    40%,
+    rgba(255,255,255,0)    60%,
+    rgba(255,255,255,0.15) 80%,
+    rgba(255,255,255,0.45) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.liquid-glass-strong {
+  background: rgba(255,255,255,0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+  border: none;
+  box-shadow: 4px 4px 4px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.15);
+  position: relative;
+  overflow: hidden;
+}
+.liquid-glass-strong::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.5) 0%,
+    rgba(255,255,255,0.2) 20%,
+    rgba(255,255,255,0)   40%,
+    rgba(255,255,255,0)   60%,
+    rgba(255,255,255,0.2) 80%,
+    rgba(255,255,255,0.5) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.hero-title {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(96px, 18vw, 280px);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  color: white;
+  text-align: center;
+}
+
+.hero-date {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(22px, 2.4vw, 36px);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.82);
+  text-align: center;
+  margin-top: 0.35em;
+  text-shadow: 0 1px 24px rgba(0, 0, 0, 0.25);
+}
+.hero-date::before,
+.hero-date::after {
+  content: "";
+  display: inline-block;
+  width: clamp(28px, 4vw, 56px);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.45);
+  vertical-align: middle;
+  margin: 0 0.8em;
+  transform: translateY(-0.12em);
+}
+
+/* RGB / rainbow hover ring — sleek animated conic-gradient border
+   Only animates on hover; gracefully degrades without @property. */
+@property --rgb-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.rgb-hover { position: relative; }
+.rgb-hover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.6px;
+  background: conic-gradient(from var(--rgb-angle),
+    #ff3b8b, #ff8a3d, #ffd166, #6dd76a, #4cc9f0, #8b5cf6, #ff3b8b);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+.rgb-hover:hover::after {
+  opacity: 1;
+  animation: rgb-spin 3.2s linear infinite;
+}
+.rgb-hover:hover {
+  box-shadow: 0 0 22px 2px rgba(140, 100, 255, 0.18),
+              0 0 36px 8px rgba(255, 120, 180, 0.10);
+}
+@keyframes rgb-spin {
+  to { --rgb-angle: 360deg; }
+}
+
+/* ---------- Loading screen v2 ---------- */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  transition: opacity 950ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+  font-family: 'Barlow', sans-serif;
+}
+.loading-overlay.is-exiting {
+  opacity: 0;
+  pointer-events: none;
+}
+.loading-overlay.is-exiting .loading-stage {
+  animation: stage-launch 1100ms cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
+@keyframes stage-launch {
+  0%   { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-24vh) scale(0.72); }
+}
+
+.loading-stage {
+  position: relative;
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Pre-text "Loading..." that flashes in/out before the title appears */
+.loading-pre {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.32);
+  opacity: 0;
+  animation: pre-flash 1300ms ease-out forwards;
+  pointer-events: none;
+}
+@keyframes pre-flash {
+  0%   { opacity: 0; }
+  35%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* The wordmark — clip-path wipe + blur-in */
+.loading-title {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(80px, 16vw, 240px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: #F5EFE7;
+  text-align: center;
+  margin: 0;
+  clip-path: inset(0 100% 0 0);
+  filter: blur(10px);
+  opacity: 0.8;
+  animation: title-reveal 1800ms cubic-bezier(0.22, 1, 0.36, 1) 600ms forwards;
+  position: relative;
+  z-index: 2;
+  white-space: nowrap;
+}
+@keyframes title-reveal {
+  0%   { clip-path: inset(0 100% 0 0); filter: blur(10px); opacity: 0.8; }
+  60%  { filter: blur(0); opacity: 1; }
+  100% { clip-path: inset(0 0% 0 0); filter: blur(0); opacity: 1; }
+}
+
+/* Glitch event — title splits + chromatic offset for ~150ms */
+.loading-title.is-glitching {
+  animation: title-glitch 180ms steps(4) 1;
+}
+@keyframes title-glitch {
+  0%   { transform: translate(0,0); filter: none; }
+  25%  { transform: translate(4px,-2px); filter: drop-shadow(-7px 0 0 rgba(212,168,83,.95)) drop-shadow(5px 0 0 rgba(255,255,255,.4)); }
+  50%  { transform: translate(-3px,1px); filter: drop-shadow(6px 0 0 rgba(212,168,83,.9)); }
+  75%  { transform: translate(2px,0); filter: drop-shadow(-3px 0 0 rgba(212,168,83,.6)); }
+  100% { transform: translate(0,0); filter: none; }
+}
+
+/* Gold glitch bar — horizontal slab w/ motion-blur smear */
+.loading-glitch-bar {
+  position: absolute;
+  right: -4%;
+  bottom: 36%;
+  width: 38%;
+  height: 10px;
+  background: #D4A853;
+  box-shadow: 14px 0 24px rgba(212, 168, 83, 0.55),
+              -2px 0 0 rgba(212, 168, 83, 0.4);
+  filter: blur(0.4px);
+  opacity: 0;
+  transform-origin: right;
+  pointer-events: none;
+  z-index: 3;
+}
+.loading-glitch-bar.is-on {
+  animation: glitch-bar 200ms steps(4) 1;
+}
+@keyframes glitch-bar {
+  0%   { opacity: 0; transform: scaleX(0); }
+  20%  { opacity: 1; transform: scaleX(1) translateX(2%); }
+  60%  { opacity: 1; transform: scaleX(0.85) translateX(-4%); }
+  100% { opacity: 0; transform: scaleX(0.3) translateX(8%); }
+}
+
+/* Gold lightning path under the wordmark */
+.loading-bolt {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  transform: translate(-50%, -50%);
+  width: 88%;
+  height: 80%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 1;
+  overflow: visible;
+}
+.loading-bolt.is-on { opacity: 1; }
+.loading-bolt.is-fading { animation: bolt-fade 900ms ease-out forwards; }
+@keyframes bolt-fade { to { opacity: 0; } }
+.loading-bolt path {
+  stroke: #D4A853;
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1600;
+  stroke-dashoffset: 1600;
+  filter: drop-shadow(0 0 8px rgba(212,168,83,0.85))
+          drop-shadow(0 0 18px rgba(212,168,83,0.45));
+}
+.loading-bolt.is-on path {
+  animation: bolt-stroke 420ms linear forwards;
+}
+@keyframes bolt-stroke { to { stroke-dashoffset: 0; } }
+
+/* Sparkle ✦ four-point burst */
+.loading-sparkle {
+  position: absolute;
+  width: 22px; height: 22px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0) rotate(15deg);
+  z-index: 4;
+  color: #F5EFE7;
+}
+.loading-sparkle.is-on {
+  animation: sparkle-flash 320ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes sparkle-flash {
+  0%   { transform: scale(0) rotate(0); opacity: 0; }
+  45%  { transform: scale(1.3) rotate(20deg); opacity: 1; }
+  100% { transform: scale(0) rotate(60deg); opacity: 0; }
+}
+
+/* Skip pill — bottom-center */
+.loading-skip {
+  position: absolute;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: rgba(36, 36, 36, 0.92);
+  color: #F5EFE7;
+  border: none;
+  border-radius: 999px;
+  font: 500 11px/1 'Barlow', sans-serif;
+  letter-spacing: 0.06em;
+  padding: 8px 20px;
+  cursor: pointer;
+  opacity: 0;
+  transition: background 200ms, color 200ms;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+.loading-skip.is-on {
+  animation: skip-in 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.loading-skip:hover {
+  background: rgba(60, 60, 60, 0.95);
+}
+@keyframes skip-in {
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ---------- Nav dropdown menus ---------- */
+.nav-trigger {
+  position: relative;
+}
+.nav-trigger > .caret {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 6px;
+  border-right: 1.2px solid currentColor;
+  border-bottom: 1.2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  opacity: 0.55;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
+}
+.nav-trigger.is-open > .caret {
+  transform: translateY(0) rotate(225deg);
+  opacity: 1;
+}
+
+/* Dropdown wrapper — outer padding is the invisible hover bridge */
+.nav-dropdown {
+  position: absolute;
+  top: 100%;
+  padding: 14px 8px 8px;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translate3d(-50%, -4px, 0);
+  opacity: 0;
+  transition: opacity 220ms cubic-bezier(0.4, 0, 0.2, 1),
+              transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0s linear 280ms;
+  z-index: 60;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.nav-dropdown.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate3d(-50%, 0, 0);
+  transition: opacity 220ms cubic-bezier(0.4, 0, 0.2, 1),
+              transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0s linear 0s;
+}
+
+.nav-dropdown-card {
+  position: relative;
+  min-width: 220px;
+  padding: 6px;
+  border-radius: 16px;
+  background: rgba(20, 20, 22, 0.72);
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.12),
+    0 12px 32px rgba(0,0,0,0.45),
+    0 2px 6px rgba(0,0,0,0.25);
+  overflow: hidden;
+  transform: translateZ(0);
+}
+/* Only run the expensive backdrop blur when the dropdown is actually visible.
+   Three idle blurs on a parent that's visibility:hidden still cost compositing
+   on some GPUs, which was the source of the stutter. */
+.nav-dropdown.is-open .nav-dropdown-card {
+  background: rgba(20, 20, 22, 0.42);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+.nav-dropdown-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.5) 0%,
+    rgba(255,255,255,0.18) 25%,
+    rgba(255,255,255,0)    45%,
+    rgba(255,255,255,0)    60%,
+    rgba(255,255,255,0.18) 80%,
+    rgba(255,255,255,0.5) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.nav-dropdown-item {
+  position: relative;
+  display: block;
+  padding: 9px 16px;
+  border-radius: 10px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.72);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  /* Cheap, GPU-friendly transitions only — no layout-triggering padding. */
+  opacity: 0;
+  transform: translate3d(-6px, 0, 0);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    opacity 280ms ease,
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+.nav-dropdown.is-open .nav-dropdown-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(1) { transition-delay: 40ms; }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(2) { transition-delay: 90ms; }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(3) { transition-delay: 140ms; }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(4) { transition-delay: 190ms; }
+
+/* Inner label gets the slide-right on hover (transform, not padding) */
+.nav-dropdown-item > span.lbl {
+  display: inline-block;
+  transform: translateX(0);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.nav-dropdown-item:hover > span.lbl {
+  transform: translateX(6px);
+}
+.nav-dropdown-item::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translate3d(0, -50%, 0) scaleY(0.2);
+  width: 2px;
+  height: 14px;
+  border-radius: 2px;
+  background: #D4A853;
+  opacity: 0;
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 8px rgba(212,168,83,0.55);
+}
+.nav-dropdown-item:hover {
+  color: #fff;
+  background-color: rgba(255,255,255,0.06);
+}
+.nav-dropdown-item:hover::after {
+  opacity: 1;
+  transform: translate3d(0, -50%, 0) scaleY(1);
+}
+</style>
+</head>
+<body class="bg-black text-white">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+
+
+const { useState, useEffect, useLayoutEffect, useRef } = React;
+
+const NAV_ITEMS = [
+  { label: 'ABOUT',              items: ['THE SECRETARIAT', 'MUN @ UM'] },
+  { label: 'DELEGATE RESOURCES', items: ['CONFERENCE SCHEDULE', 'DELEGATE HANDBOOK', 'POSITION PAPERS'] },
+  { label: 'COMMITTEES',         items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'SPECIALIZED', 'CRISIS'] },
+];
+const VIDEO_SRC = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_080827_a9e5ad52-b6ee-4e79-b393-d936f179cfd7.mp4';
+
+function LoadingOverlay({ onDone }) {
+  const [exiting, setExiting] = React.useState(false);
+  const [showSkip, setShowSkip] = React.useState(false);
+  const [boltState, setBoltState] = React.useState('off'); // off | on | fading
+  const [sparkleOn, setSparkleOn] = React.useState(false);
+  const [glitchOn, setGlitchOn] = React.useState(false);
+  const timersRef = React.useRef([]);
+  const doneCalledRef = React.useRef(false);
+
+  const beginExit = React.useCallback(() => {
+    if (doneCalledRef.current) return;
+    doneCalledRef.current = true;
+    timersRef.current.forEach(clearTimeout);
+    setExiting(true);
+    setTimeout(() => onDone && onDone(), 1100);
+  }, [onDone]);
+
+  React.useEffect(() => {
+    // Timeline (ms from mount):
+    //   0   - pre-text "Loading…" begins fade (CSS-driven)
+    // 240  - wordmark begins clip-path reveal (CSS-driven, 1.1s)
+    // 700  - Skip pill fades in
+    // 1280 - gold lightning starts drawing
+    // 1560 - sparkle flashes
+    // 1820 - glitch event (title shift + gold bar)
+    // 2050 - lightning starts fading out
+    // 2700 - exit begins
+    // 3550 - onDone
+    const t = timersRef.current;
+    t.push(setTimeout(() => setShowSkip(true), 1400));
+    t.push(setTimeout(() => setBoltState('on'), 2700));
+    t.push(setTimeout(() => setSparkleOn(true), 3400));
+    t.push(setTimeout(() => setSparkleOn(false), 3900));
+    t.push(setTimeout(() => setGlitchOn(true), 3800));
+    t.push(setTimeout(() => setGlitchOn(false), 4150));
+    t.push(setTimeout(() => setBoltState('fading'), 4500));
+    t.push(setTimeout(beginExit, 6400));
+    return () => t.forEach(clearTimeout);
+  }, [beginExit]);
+
+  // Jagged lightning polyline. Sits behind the wordmark.
+  const boltPath = "M 8 110 L 80 78 L 140 132 L 210 62 L 290 134 L 360 76 L 440 142 L 520 70 L 605 128 L 685 84 L 760 118 L 820 96";
+
+  return (
+    <div className={"loading-overlay" + (exiting ? " is-exiting" : "")}>
+      <div className="loading-stage">
+        <span className="loading-pre">Loading…</span>
+
+        <svg
+          className={"loading-bolt " + (boltState === 'on' ? 'is-on' : boltState === 'fading' ? 'is-fading is-on' : '')}
+          viewBox="0 0 840 200"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path d={boltPath} />
+        </svg>
+
+        <h2 className={"loading-title " + (glitchOn ? 'is-glitching' : '')} aria-label="JAGMUN II">
+          JAGMUN II
+        </h2>
+
+        <div className={"loading-glitch-bar " + (glitchOn ? 'is-on' : '')} aria-hidden="true" />
+
+        <svg
+          className={"loading-sparkle " + (sparkleOn ? 'is-on' : '')}
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+          style={{ top: '8%', left: '64%' }}
+        >
+          {/* Four-point sparkle */}
+          <path d="M12 0 L13.4 10.6 L24 12 L13.4 13.4 L12 24 L10.6 13.4 L0 12 L10.6 10.6 Z" />
+        </svg>
+      </div>
+
+      <button
+        type="button"
+        className={"loading-skip " + (showSkip ? 'is-on' : '')}
+        onClick={beginExit}
+        aria-label="Skip intro"
+      >
+        Skip
+      </button>
+    </div>
+  );
+}
+
+function NavBar() {
+  const [openIdx, setOpenIdx] = React.useState(null);
+  const [positions, setPositions] = React.useState([]);
+  const navRef = React.useRef(null);
+  const triggerRefs = React.useRef([]);
+  const closeTimer = React.useRef(null);
+
+  const measurePositions = React.useCallback(() => {
+    if (!navRef.current) return;
+    const navRect = navRef.current.getBoundingClientRect();
+    const xs = NAV_ITEMS.map((_, i) => {
+      const t = triggerRefs.current[i];
+      if (!t) return 0;
+      const r = t.getBoundingClientRect();
+      return r.left + r.width / 2 - navRect.left;
+    });
+    setPositions(xs);
+  }, []);
+
+  React.useLayoutEffect(() => {
+    measurePositions();
+    window.addEventListener('resize', measurePositions);
+    // Re-measure after web fonts settle (Instrument Serif/Barlow can shift widths)
+    const f = setTimeout(measurePositions, 600);
+    return () => {
+      window.removeEventListener('resize', measurePositions);
+      clearTimeout(f);
+    };
+  }, [measurePositions]);
+
+  const openMenu = (idx) => {
+    clearTimeout(closeTimer.current);
+    setOpenIdx(idx);
+  };
+  const scheduleClose = () => {
+    clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpenIdx(null), 180);
+  };
+  const cancelClose = () => clearTimeout(closeTimer.current);
+
+  return (
+    <nav ref={navRef} className="fixed top-5 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap">
+      <div className="liquid-glass flex items-center gap-5 rounded px-4 py-2">
+        <LogoMark />
+        {NAV_ITEMS.map((item, idx) => (
+          <a
+            key={item.label}
+            href="#"
+            ref={(el) => { triggerRefs.current[idx] = el; }}
+            onMouseEnter={() => openMenu(idx)}
+            onMouseLeave={scheduleClose}
+            className={
+              "nav-trigger text-sm font-body font-light transition-colors duration-200 " +
+              (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')
+            }
+          >
+            {item.label}
+            <span className="caret" aria-hidden="true"></span>
+          </a>
+        ))}
+        <a href="#" className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-4 py-1.5 transition-all duration-200 hover:scale-[1.04] active:scale-[0.97]">REGISTRATION</a>
+        <a href="#" aria-label="Instagram" className="text-white/70 hover:text-white transition-colors duration-200 flex items-center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+        </a>
+      </div>
+
+      {/* Dropdown panels — siblings of the pill so they escape its overflow:hidden */}
+      {NAV_ITEMS.map((item, idx) => (
+        <div
+          key={item.label}
+          className={"nav-dropdown" + (openIdx === idx ? " is-open" : "")}
+          style={{ left: positions[idx] || 0 }}
+          onMouseEnter={() => { cancelClose(); openMenu(idx); }}
+          onMouseLeave={scheduleClose}
+          aria-hidden={openIdx !== idx}
+        >
+          <div className="nav-dropdown-card">
+            {item.items.map((sub) => (
+              <a key={sub} href="#" className="nav-dropdown-item"><span className="lbl">{sub}</span></a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+function LogoMark() {
+  return (
+    <img
+      src="assets/jagmun-logo.png"
+      alt="JagMUN"
+      width="52"
+      height="52"
+      draggable="false"
+      style={{
+        width: 52,
+        height: 52,
+        objectFit: 'contain',
+        display: 'block',
+        userSelect: 'none',
+        marginLeft: -4,
+        marginRight: -4,
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))',
+      }}
+    />
+  );
+}
+
+function App() {
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [framesReady, setFramesReady] = useState(false);
+
+  const videoRef = useRef(null);
+  const videoBgRef = useRef(null);
+  const displayCanvasRef = useRef(null);
+  const bgCanvasRef = useRef(null);
+  const framesRef = useRef([]);
+
+  // Mount fade-in — only after the loading overlay is gone, so the hero
+  // title doesn't appear *behind* the loader (would read as JAGMUN II twice).
+  useEffect(() => {
+    if (loading) return;
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, [loading]);
+
+  // Effect 1 — frame capture (boomerang setup)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let capturing = true;
+    let lastTime = -1;
+    const MAX_WIDTH = 1920;
+    const frames = [];
+    let rafId = null;
+    let vfcId = null;
+
+    const captureFrame = () => {
+      if (!capturing) return;
+      if (video.readyState < 2) {
+        scheduleNext();
+        return;
+      }
+      if (video.currentTime === lastTime) {
+        scheduleNext();
+        return;
+      }
+      lastTime = video.currentTime;
+      const scale = Math.min(1, MAX_WIDTH / video.videoWidth);
+      const w = Math.max(1, Math.floor(video.videoWidth * scale));
+      const h = Math.max(1, Math.floor(video.videoHeight * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      try {
+        ctx.drawImage(video, 0, 0, w, h);
+        frames.push(canvas);
+      } catch (e) {
+        // CORS / tainted canvas — bail
+        capturing = false;
+        return;
+      }
+      scheduleNext();
+    };
+
+    const scheduleNext = () => {
+      if (!capturing) return;
+      if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
+        vfcId = video.requestVideoFrameCallback(captureFrame);
+      } else {
+        rafId = requestAnimationFrame(captureFrame);
+      }
+    };
+
+    const onLoaded = () => {
+      video.play().catch(() => {});
+      scheduleNext();
+    };
+
+    const onEnded = () => {
+      capturing = false;
+      framesRef.current = frames;
+      if (frames.length > 0) {
+        setFramesReady(true);
+      }
+    };
+
+    video.addEventListener('loadedmetadata', onLoaded);
+    video.addEventListener('ended', onEnded);
+    if (video.readyState >= 1) onLoaded();
+
+    return () => {
+      capturing = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      video.removeEventListener('loadedmetadata', onLoaded);
+      video.removeEventListener('ended', onEnded);
+    };
+  }, []);
+
+  // Effect 2 — boomerang render
+  // useLayoutEffect ensures the first frame is drawn synchronously before the
+  // browser paints, eliminating the one-frame black flash on the video→canvas switch.
+  useLayoutEffect(() => {
+    if (!framesReady) return;
+    const canvas = displayCanvasRef.current;
+    const bgCanvas = bgCanvasRef.current;
+    const frames = framesRef.current;
+    if (!canvas || !frames || frames.length === 0) return;
+    canvas.width = frames[0].width;
+    canvas.height = frames[0].height;
+    const ctx = canvas.getContext('2d');
+    let bgCtx = null;
+    if (bgCanvas) {
+      bgCanvas.width = frames[0].width;
+      bgCanvas.height = frames[0].height;
+      bgCtx = bgCanvas.getContext('2d');
+    }
+
+    // Draw first frame immediately so the canvas is never blank when it becomes visible.
+    ctx.drawImage(frames[0], 0, 0);
+    if (bgCtx) bgCtx.drawImage(frames[0], 0, 0);
+
+    let index = 0;
+    let direction = 1;
+    let last = performance.now();
+    const interval = 1000 / 30;
+    let rafId;
+
+    const render = (now) => {
+      if (now - last >= interval) {
+        last = now;
+        ctx.drawImage(frames[index], 0, 0);
+        if (bgCtx) bgCtx.drawImage(frames[index], 0, 0);
+        index += direction;
+        if (index >= frames.length - 1) {
+          index = frames.length - 1;
+          direction = -1;
+        } else if (index <= 0) {
+          index = 0;
+          direction = 1;
+        }
+      }
+      rafId = requestAnimationFrame(render);
+    };
+    rafId = requestAnimationFrame(render);
+
+    return () => cancelAnimationFrame(rafId);
+  }, [framesReady]);
+
+  // Effect 3 — parallax mouse tracking (disabled; static background per user request)
+
+  return (
+    <div className="min-h-screen bg-black text-white font-body overflow-x-hidden">
+      {loading && <LoadingOverlay onDone={() => setLoading(false)} />}
+      {/* Video background — kept invisible until the loading overlay is fully gone */}
+      <div ref={videoBgRef} className="fixed top-0 left-0 z-0 origin-center" style={{ width: '100vw', height: '100vh', position: 'fixed', overflow: 'hidden', opacity: mounted ? 1 : 0, transition: 'opacity 1s ease' }}>
+        <video
+          ref={videoRef}
+          src={VIDEO_SRC}
+          muted
+          playsInline
+          preload="auto"
+          crossOrigin="anonymous"
+          style={{ display: framesReady ? 'none' : 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+        <canvas
+          ref={displayCanvasRef}
+          style={{ display: framesReady ? 'block' : 'none', width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      </div>
+
+      {/* Hero title */}
+      <div
+        className={"fixed left-0 right-0 z-20 w-full px-4 transition-all duration-1000 " + (mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6")}
+        style={{ top: '126px' }}
+      >
+        <h1 className="hero-title select-none">JAGMUN II</h1>
+        <p className="hero-date select-none">Sep 27&ndash;28, 2026</p>
+      </div>
+
+      {/* Nav */}
+      <NavBar />
+
+      {/* Bottom row */}
+      <div className={"fixed bottom-12 left-0 right-0 px-10 flex items-end justify-between z-20 transition-all duration-1000 delay-300 " + (mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6")}>
+        <p className="text-sm font-body font-light text-white/75 max-w-[220px] leading-relaxed">
+          
+        </p>
+
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex items-center gap-3">
+          <button className="rgb-hover group relative bg-white text-black text-sm font-body font-medium rounded px-6 py-3 overflow-hidden active:scale-[0.97] transition-all duration-200 hover:scale-[1.03]">
+            <span className="relative z-10">Registration
+</span>
+            <span className="absolute inset-0 bg-gradient-to-b from-white to-white/85 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+          </button>
+          <button className="liquid-glass group text-white text-sm font-body font-medium rounded px-6 py-3 active:scale-[0.97] transition-all duration-200 hover:scale-[1.03] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_20px_2px_rgba(255,255,255,0.07)]">
+            Committees
+          </button>
+        </div>
+
+        <p className="text-sm font-body font-light text-white/75 max-w-[220px] leading-relaxed text-right">
+          
+        </p>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+
+</script>
+</body>
+</html>
