@@ -840,19 +840,15 @@ function App() {
     const ctx = canvas.getContext('2d');
     let bgCtx = bgCanvas ? bgCanvas.getContext('2d') : null;
 
-    // Contain: draw `img` centered in cw×ch, preserving aspect ratio (no crop).
+    // Cover-crop: draw `img` into ctx filling cw×ch without CSS object-fit.
     const drawCover = (c, img) => {
       const cw = c.width, ch = c.height;
       const ir = img.width / img.height;
       const cr = cw / ch;
-      let dw, dh;
-      if (ir > cr) { dw = cw; dh = cw / ir; }
-      else         { dh = ch; dw = ch * ir; }
-      const dx = (cw - dw) / 2;
-      const dy = (ch - dh) / 2;
-      const ctx = c.getContext('2d');
-      ctx.clearRect(0, 0, cw, ch);
-      ctx.drawImage(img, dx, dy, dw, dh);
+      let sx = 0, sy = 0, sw = img.width, sh = img.height;
+      if (ir > cr) { sw = img.height * cr; sx = (img.width - sw) / 2; }
+      else         { sh = img.width / cr;  sy = (img.height - sh) / 2; }
+      c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
     };
 
     // Draw first frame immediately so the canvas is never blank when visible.
@@ -907,7 +903,7 @@ function App() {
           playsInline
           preload="auto"
           crossOrigin="anonymous"
-          style={{ display: framesReady ? 'none' : 'block', width: '100%', height: '100%', objectFit: 'contain' }}
+          style={{ display: framesReady ? 'none' : 'block', width: '100%', height: '100%', objectFit: 'cover' }}
         />
         <canvas
           ref={displayCanvasRef}
