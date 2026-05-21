@@ -508,7 +508,7 @@ body { font-family: 'Barlow', sans-serif; }
 <script type="text/babel" data-presets="env,react">
 
 
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useLayoutEffect, useRef } = React;
 
 const NAV_ITEMS = [
   { label: 'ABOUT',              items: ['THE SECRETARIAT', 'MUN @ UM'] },
@@ -812,7 +812,9 @@ function App() {
   }, []);
 
   // Effect 2 — boomerang render
-  useEffect(() => {
+  // useLayoutEffect ensures the first frame is drawn synchronously before the
+  // browser paints, eliminating the one-frame black flash on the video→canvas switch.
+  useLayoutEffect(() => {
     if (!framesReady) return;
     const canvas = displayCanvasRef.current;
     const bgCanvas = bgCanvasRef.current;
@@ -827,6 +829,10 @@ function App() {
       bgCanvas.height = frames[0].height;
       bgCtx = bgCanvas.getContext('2d');
     }
+
+    // Draw first frame immediately so the canvas is never blank when it becomes visible.
+    ctx.drawImage(frames[0], 0, 0);
+    if (bgCtx) bgCtx.drawImage(frames[0], 0, 0);
 
     let index = 0;
     let direction = 1;
@@ -860,8 +866,8 @@ function App() {
   return (
     <div className="min-h-screen bg-black text-white font-body overflow-x-hidden">
       {loading && <LoadingOverlay onDone={() => setLoading(false)} />}
-      {/* Video background */}
-      <div ref={videoBgRef} className="fixed top-0 left-0 z-0 origin-center" style={{ width: '100vw', height: '100vh', position: 'fixed', overflow: 'hidden' }}>
+      {/* Video background — kept invisible until the loading overlay is fully gone */}
+      <div ref={videoBgRef} className="fixed top-0 left-0 z-0 origin-center" style={{ width: '100vw', height: '100vh', position: 'fixed', overflow: 'hidden', opacity: mounted ? 1 : 0, transition: 'opacity 1s ease' }}>
         <video
           ref={videoRef}
           src={VIDEO_SRC}
