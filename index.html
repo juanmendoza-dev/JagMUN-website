@@ -516,7 +516,7 @@ const NAV_ITEMS = [
   { label: 'DELEGATE RESOURCES', items: ['CONFERENCE SCHEDULE', 'DELEGATE HANDBOOK', 'POSITION PAPERS'] },
   { label: 'COMMITTEES',         items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'SPECIALIZED', 'CRISIS'] },
 ];
-const VIDEO_SRC = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_080827_a9e5ad52-b6ee-4e79-b393-d936f179cfd7.mp4';
+const VIDEO_SRC = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260422_191657_800d4e1f-7ab3-41af-90b6-9bd3039eb294.mp4';
 
 function LoadingOverlay({ onDone }) {
   const [exiting, setExiting] = React.useState(false);
@@ -821,19 +821,43 @@ function App() {
     const bgCanvas = bgCanvasRef.current;
     const frames = framesRef.current;
     if (!canvas || !frames || frames.length === 0) return;
-    canvas.width = frames[0].width;
-    canvas.height = frames[0].height;
-    const ctx = canvas.getContext('2d');
-    let bgCtx = null;
-    if (bgCanvas) {
-      bgCanvas.width = frames[0].width;
-      bgCanvas.height = frames[0].height;
-      bgCtx = bgCanvas.getContext('2d');
-    }
 
-    // Draw first frame immediately so the canvas is never blank when it becomes visible.
-    ctx.drawImage(frames[0], 0, 0);
-    if (bgCtx) bgCtx.drawImage(frames[0], 0, 0);
+    // Size canvas to the viewport at native device pixel density so there is
+    // no CSS upscaling. We handle the cover-crop in drawImage instead.
+    const dpr = window.devicePixelRatio || 1;
+    const sizeCanvas = () => {
+      const w = canvas.parentElement ? canvas.parentElement.clientWidth : window.innerWidth;
+      const h = canvas.parentElement ? canvas.parentElement.clientHeight : window.innerHeight;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      if (bgCanvas) {
+        bgCanvas.width = canvas.width;
+        bgCanvas.height = canvas.height;
+      }
+    };
+    sizeCanvas();
+
+    const ctx = canvas.getContext('2d');
+    let bgCtx = bgCanvas ? bgCanvas.getContext('2d') : null;
+
+    // Contain: draw `img` centered in cw×ch, preserving aspect ratio (no crop).
+    const drawCover = (c, img) => {
+      const cw = c.width, ch = c.height;
+      const ir = img.width / img.height;
+      const cr = cw / ch;
+      let dw, dh;
+      if (ir > cr) { dw = cw; dh = cw / ir; }
+      else         { dh = ch; dw = ch * ir; }
+      const dx = (cw - dw) / 2;
+      const dy = (ch - dh) / 2;
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(img, dx, dy, dw, dh);
+    };
+
+    // Draw first frame immediately so the canvas is never blank when visible.
+    drawCover(canvas, frames[0]);
+    if (bgCanvas) drawCover(bgCanvas, frames[0]);
 
     let index = 0;
     let direction = 1;
@@ -844,8 +868,8 @@ function App() {
     const render = (now) => {
       if (now - last >= interval) {
         last = now;
-        ctx.drawImage(frames[index], 0, 0);
-        if (bgCtx) bgCtx.drawImage(frames[index], 0, 0);
+        drawCover(canvas, frames[index]);
+        if (bgCanvas) drawCover(bgCanvas, frames[index]);
         index += direction;
         if (index >= frames.length - 1) {
           index = frames.length - 1;
@@ -859,7 +883,14 @@ function App() {
     };
     rafId = requestAnimationFrame(render);
 
-    return () => cancelAnimationFrame(rafId);
+    // Re-size canvas on window resize so it stays sharp at every size.
+    const onResize = () => { sizeCanvas(); };
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', onResize);
+    };
   }, [framesReady]);
 
   // Effect 3 — parallax mouse tracking (disabled; static background per user request)
@@ -876,11 +907,11 @@ function App() {
           playsInline
           preload="auto"
           crossOrigin="anonymous"
-          style={{ display: framesReady ? 'none' : 'block', width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ display: framesReady ? 'none' : 'block', width: '100%', height: '100%', objectFit: 'contain' }}
         />
         <canvas
           ref={displayCanvasRef}
-          style={{ display: framesReady ? 'block' : 'none', width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{ display: framesReady ? 'block' : 'none', width: '100%', height: '100%' }}
         />
       </div>
 
