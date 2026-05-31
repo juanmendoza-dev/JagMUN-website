@@ -3,13 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>JAGMUN II</title>
+<title>JAGMUN III</title>
 <link rel="icon" type="image/png" href="assets/jagmun-logo.png" />
+
+<!-- Production React (no dev-warning overhead, ~3x smaller than dev builds) -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<!-- htm: ~800-byte JSX-without-Babel alternative (replaces the 1.5 MB Babel Standalone) -->
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js" crossorigin="anonymous"></script>
+<!-- Tailwind utility classes -->
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/gsap@3.12.5/dist/gsap.min.js"></script>
+<!-- Lenis smooth scroll — deferred so it never blocks first paint -->
+<script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -121,8 +127,7 @@ body { font-family: 'Barlow', sans-serif; }
   transform: translateY(-0.12em);
 }
 
-/* RGB / rainbow hover ring — sleek animated conic-gradient border
-   Only animates on hover; gracefully degrades without @property. */
+/* RGB / rainbow hover ring */
 @property --rgb-angle {
   syntax: '<angle>';
   initial-value: 0deg;
@@ -157,7 +162,7 @@ body { font-family: 'Barlow', sans-serif; }
   to { --rgb-angle: 360deg; }
 }
 
-/* ---------- Loading screen v2 ---------- */
+/* ---------- Loading screen ---------- */
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -188,7 +193,6 @@ body { font-family: 'Barlow', sans-serif; }
   will-change: transform;
 }
 
-/* Pre-text "Loading..." that flashes in/out before the title appears */
 .loading-pre {
   position: absolute;
   top: 50%; left: 50%;
@@ -208,7 +212,6 @@ body { font-family: 'Barlow', sans-serif; }
   100% { opacity: 0; }
 }
 
-/* The wordmark — clip-path wipe + blur-in */
 .loading-title {
   font-family: 'Instrument Serif', serif;
   font-style: italic;
@@ -232,28 +235,37 @@ body { font-family: 'Barlow', sans-serif; }
   100% { clip-path: inset(0 0% 0 0); filter: blur(0); opacity: 1; }
 }
 
-/* Glitch event — title splits + chromatic offset for ~150ms */
+/* Low-tier loading title: no clip-path (skip the animation, just fade in) */
+.tier-low .loading-title {
+  clip-path: none;
+  filter: none;
+  opacity: 0;
+  animation: low-title-fade 600ms ease forwards;
+}
+@keyframes low-title-fade {
+  to { opacity: 1; }
+}
+
 .loading-title.is-glitching {
   animation: title-glitch 180ms steps(4) 1;
 }
 @keyframes title-glitch {
   0%   { transform: translate(0,0); filter: none; }
-  25%  { transform: translate(4px,-2px); filter: drop-shadow(-7px 0 0 rgba(212,168,83,.95)) drop-shadow(5px 0 0 rgba(255,255,255,.4)); }
-  50%  { transform: translate(-3px,1px); filter: drop-shadow(6px 0 0 rgba(212,168,83,.9)); }
-  75%  { transform: translate(2px,0); filter: drop-shadow(-3px 0 0 rgba(212,168,83,.6)); }
+  25%  { transform: translate(4px,-2px); filter: drop-shadow(-7px 0 0 rgba(141,36,36,.95)) drop-shadow(5px 0 0 rgba(255,255,255,.4)); }
+  50%  { transform: translate(-3px,1px); filter: drop-shadow(6px 0 0 rgba(141,36,36,.9)); }
+  75%  { transform: translate(2px,0); filter: drop-shadow(-3px 0 0 rgba(141,36,36,.6)); }
   100% { transform: translate(0,0); filter: none; }
 }
 
-/* Gold glitch bar — horizontal slab w/ motion-blur smear */
 .loading-glitch-bar {
   position: absolute;
   right: -4%;
   bottom: 36%;
   width: 38%;
   height: 10px;
-  background: #D4A853;
-  box-shadow: 14px 0 24px rgba(212, 168, 83, 0.55),
-              -2px 0 0 rgba(212, 168, 83, 0.4);
+  background: #8d2424;
+  box-shadow: 14px 0 24px rgba(141, 36, 36, 0.55),
+              -2px 0 0 rgba(141, 36, 36, 0.4);
   filter: blur(0.4px);
   opacity: 0;
   transform-origin: right;
@@ -270,7 +282,6 @@ body { font-family: 'Barlow', sans-serif; }
   100% { opacity: 0; transform: scaleX(0.3) translateX(8%); }
 }
 
-/* Gold lightning path under the wordmark */
 .loading-bolt {
   position: absolute;
   left: 50%;
@@ -287,22 +298,21 @@ body { font-family: 'Barlow', sans-serif; }
 .loading-bolt.is-fading { animation: bolt-fade 900ms ease-out forwards; }
 @keyframes bolt-fade { to { opacity: 0; } }
 .loading-bolt path {
-  stroke: #D4A853;
+  stroke: #8d2424;
   fill: none;
   stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 1600;
   stroke-dashoffset: 1600;
-  filter: drop-shadow(0 0 8px rgba(212,168,83,0.85))
-          drop-shadow(0 0 18px rgba(212,168,83,0.45));
+  filter: drop-shadow(0 0 8px rgba(141,36,36,0.85))
+          drop-shadow(0 0 18px rgba(141,36,36,0.45));
 }
 .loading-bolt.is-on path {
   animation: bolt-stroke 420ms linear forwards;
 }
 @keyframes bolt-stroke { to { stroke-dashoffset: 0; } }
 
-/* Sparkle ✦ four-point burst */
 .loading-sparkle {
   position: absolute;
   width: 22px; height: 22px;
@@ -321,7 +331,6 @@ body { font-family: 'Barlow', sans-serif; }
   100% { transform: scale(0) rotate(60deg); opacity: 0; }
 }
 
-/* Skip pill — bottom-center */
 .loading-skip {
   position: absolute;
   bottom: 56px;
@@ -370,7 +379,6 @@ body { font-family: 'Barlow', sans-serif; }
   opacity: 1;
 }
 
-/* Dropdown wrapper — outer padding is the invisible hover bridge */
 .nav-dropdown {
   position: absolute;
   top: 100%;
@@ -409,9 +417,6 @@ body { font-family: 'Barlow', sans-serif; }
   overflow: hidden;
   transform: translateZ(0);
 }
-/* Only run the expensive backdrop blur when the dropdown is actually visible.
-   Three idle blurs on a parent that's visibility:hidden still cost compositing
-   on some GPUs, which was the source of the stutter. */
 .nav-dropdown.is-open .nav-dropdown-card {
   background: rgba(20, 20, 22, 0.42);
   backdrop-filter: blur(24px) saturate(150%);
@@ -450,7 +455,6 @@ body { font-family: 'Barlow', sans-serif; }
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
-  /* Cheap, GPU-friendly transitions only — no layout-triggering padding. */
   opacity: 0;
   transform: translate3d(-6px, 0, 0);
   transition:
@@ -469,7 +473,6 @@ body { font-family: 'Barlow', sans-serif; }
 .nav-dropdown.is-open .nav-dropdown-item:nth-child(3) { transition-delay: 140ms; }
 .nav-dropdown.is-open .nav-dropdown-item:nth-child(4) { transition-delay: 190ms; }
 
-/* Inner label gets the slide-right on hover (transform, not padding) */
 .nav-dropdown-item > span.lbl {
   display: inline-block;
   transform: translateX(0);
@@ -501,33 +504,716 @@ body { font-family: 'Barlow', sans-serif; }
   opacity: 1;
   transform: translate3d(0, -50%, 0) scaleY(1);
 }
+
+/* ============================ Marquee separator ============================ */
+.marquee {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #EFE7DA;
+  padding: 15px 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(0,0,0,0.08);
+  user-select: none;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 36s linear infinite;
+  will-change: transform;
+}
+.marquee-group { display: flex; flex-shrink: 0; }
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: clamp(22px, 2.5vw, 34px);
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  color: #17181c;
+  white-space: nowrap;
+}
+.marquee-star {
+  color: #C2922B;
+  margin: 0 0.62em;
+  font-size: 0.62em;
+  transform: translateY(-0.06em);
+}
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ============================ Dark Marquee separator ============================ */
+.marquee-dark {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #07080c;
+  padding: 18px 0;
+  box-shadow:
+    inset 0 1px 0 rgba(212,168,83,0.18),
+    inset 0 -1px 0 rgba(212,168,83,0.12);
+  user-select: none;
+}
+.marquee-dark-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-dark-scroll 48s linear infinite;
+  will-change: transform;
+}
+@keyframes marquee-dark-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-dark-group { display: flex; flex-shrink: 0; }
+.marquee-dark-item {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(18px, 2vw, 28px);
+  letter-spacing: 0.02em;
+  color: #D4A853;
+  white-space: nowrap;
+  opacity: 0.88;
+}
+.marquee-dark-dot {
+  margin: 0 0.9em;
+  font-size: 0.5em;
+  opacity: 0.55;
+  transform: translateY(-0.1em);
+  font-style: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-dark-track { animation: none !important; }
+}
+
+/* ======================= Letter from the Directors ======================= */
+.letter-section {
+  position: relative;
+  z-index: 10;
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(212,168,83,0.10) 0%, rgba(212,168,83,0) 55%),
+    linear-gradient(180deg, #050507 0%, #0a0b0f 26%, #0a0b0f 100%);
+  padding: clamp(96px, 14vh, 180px) 24px clamp(110px, 16vh, 200px);
+}
+.letter-inner {
+  max-width: 880px;
+  margin: 0 auto;
+  text-align: center;
+}
+.letter-eyebrow {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #D4A853;
+  margin: 0 0 18px;
+}
+.letter-eyebrow::before { content: "\2726"; margin-right: 0.9em; font-size: 0.82em; opacity: 0.8; }
+.letter-eyebrow::after  { content: "\2726"; margin-left: 0.9em; font-size: 0.82em; opacity: 0.8; }
+.letter-heading {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(46px, 7vw, 92px);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  color: #F5EFE7;
+  margin: 0;
+}
+.letter-card {
+  position: relative;
+  max-width: 760px;
+  margin: clamp(44px, 6vh, 68px) auto 0;
+  padding: clamp(34px, 5.2vw, 76px);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.13), 0 34px 90px rgba(0,0,0,0.55);
+  text-align: left;
+}
+.letter-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.12) 35%, rgba(255,255,255,0) 55%, rgba(255,255,255,0.16) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none;
+}
+.letter-greeting {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(24px, 3vw, 34px);
+  color: #F5EFE7;
+  margin: 0 0 26px;
+}
+.letter-body {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 300;
+  font-size: clamp(15.5px, 1.15vw, 18px);
+  line-height: 1.85;
+  color: rgba(245,239,231,0.74);
+  margin: 0 0 22px;
+  text-wrap: pretty;
+}
+.letter-body--lead::first-letter {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 3.5em;
+  line-height: 0.78;
+  float: left;
+  margin: 0.04em 0.14em 0 0;
+  color: #D4A853;
+}
+.letter-rule {
+  width: 56px; height: 1px;
+  background: linear-gradient(90deg, #D4A853, rgba(212,168,83,0));
+  border: 0; margin: 34px 0 22px;
+}
+.letter-sign-line {
+  font-family: 'Barlow', sans-serif; font-weight: 300;
+  font-size: 15px; color: rgba(245,239,231,0.6);
+  margin: 0 0 6px; letter-spacing: 0.02em;
+}
+.letter-sign-name {
+  font-family: 'Instrument Serif', serif; font-style: italic;
+  font-size: clamp(24px, 2.6vw, 32px); color: #F5EFE7; margin: 0;
+}
+.letter-sign-role {
+  font-family: 'Barlow', sans-serif; font-weight: 500;
+  font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: #D4A853; margin: 8px 0 0;
+}
+
+/* ============================ Scroll reveal ============================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.95s cubic-bezier(0.22,1,0.36,1), transform 0.95s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal.in-view { opacity: 1; transform: none; }
+
+/* ============================ Hero scroll cue ============================ */
+.hero-scroll-cue {
+  position: absolute;
+  left: 50%; bottom: 14px;
+  transform: translateX(-50%);
+  background: none; border: 0; cursor: pointer;
+  color: rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.25s ease;
+  z-index: 20;
+}
+.hero-scroll-cue:hover { color: #fff; }
+.hero-scroll-cue svg { animation: cue-bob 1.8s ease-in-out infinite; }
+@keyframes cue-bob {
+  0%,100% { transform: translateY(0); opacity: 0.6; }
+  50%     { transform: translateY(5px); opacity: 1; }
+}
+
+/* ============================ Closing footer ============================ */
+.site-footer {
+  position: relative;
+  z-index: 10;
+  background:
+    radial-gradient(120% 80% at 50% 120%, rgba(212,168,83,0.08) 0%, rgba(212,168,83,0) 55%),
+    linear-gradient(180deg, #0a0b0f 0%, #050506 100%);
+  padding: clamp(72px, 11vh, 130px) 24px clamp(44px, 6vh, 70px);
+  text-align: center;
+  overflow: hidden;
+}
+.footer-rule {
+  width: min(560px, 70%);
+  height: 1px;
+  margin: 0 auto clamp(40px, 6vh, 64px);
+  border: 0;
+  background: linear-gradient(90deg, rgba(245,239,231,0) 0%, rgba(245,239,231,0.22) 50%, rgba(245,239,231,0) 100%);
+}
+.footer-contact {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 500;
+  font-size: clamp(12.5px, 1vw, 15px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(245,239,231,0.62);
+  margin: 0 0 clamp(26px, 5vh, 54px);
+  text-wrap: balance;
+}
+.footer-email {
+  color: #D4A853;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(212,168,83,0.35);
+  padding-bottom: 1px;
+  transition: color 0.22s ease, border-color 0.22s ease;
+  white-space: nowrap;
+}
+.footer-email:hover { color: #F5EFE7; border-color: rgba(245,239,231,0.6); }
+.footer-wordmark {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(84px, 19vw, 300px);
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  color: #F5EFE7;
+  margin: 0;
+  user-select: none;
+  text-shadow: 0 2px 40px rgba(0,0,0,0.4);
+}
+.footer-ig {
+  display: inline-flex;
+  margin-top: clamp(28px, 4vh, 48px);
+  color: rgba(245,239,231,0.55);
+  transition: color 0.22s ease, transform 0.22s ease;
+}
+.footer-ig:hover { color: #fff; transform: translateY(-2px); }
+.footer-fine {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 400;
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245,239,231,0.32);
+  margin: clamp(34px, 5vh, 52px) 0 0;
+}
+
+/* ============================================================
+   TIER-ADAPTIVE OVERRIDES
+   Applied via .tier-low / .tier-mid class on <body>
+   ============================================================ */
+
+/* --- Low tier: kill expensive backdrop blurs on nav elements --- */
+.tier-low .liquid-glass {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(18, 18, 18, 0.90) !important;
+}
+.tier-low .liquid-glass-strong {
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+.tier-low .nav-dropdown.is-open .nav-dropdown-card {
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+/* --- Low tier: no RGB spinning border (conic-gradient animation is GPU-heavy) --- */
+.tier-low .rgb-hover::after { display: none !important; }
+.tier-low .rgb-hover:hover  { box-shadow: 0 0 14px 2px rgba(255,255,255,0.10); }
+/* --- Low tier: snap-in reveals instead of long transitions --- */
+.tier-low .reveal {
+  transition-duration: 0.4s !important;
+}
+/* --- Low tier: steady scroll cue (no bob animation) --- */
+.tier-low .hero-scroll-cue svg { animation: none; opacity: 0.6; }
+
+/* --- Mid tier: reduce blur values a bit --- */
+.tier-mid .liquid-glass {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.tier-mid .liquid-glass-strong {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+/* --- Mid tier: slower RGB spin (less GPU frame pressure) --- */
+.tier-mid .rgb-hover:hover::after {
+  animation: rgb-spin 5s linear infinite;
+}
+
+/* --- Universal: respect OS-level reduced-motion preference --- */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none !important; }
+  .hero-scroll-cue svg { animation: none !important; }
+  .reveal { transition: none !important; opacity: 1 !important; transform: none !important; }
+  .loading-overlay { display: none !important; }
+  .rgb-hover::after { display: none !important; }
+}
+
+/* ============================ Conference Schedule ============================ */
+.schedule-section {
+  position: relative;
+  z-index: 10;
+  background:
+    radial-gradient(110% 55% at 50% 0%, rgba(212,168,83,0.08) 0%, rgba(212,168,83,0) 55%),
+    linear-gradient(180deg, #050507 0%, #0a0b0f 30%, #0a0b0f 100%);
+  padding: clamp(96px, 14vh, 180px) 24px clamp(110px, 16vh, 200px);
+  overflow: hidden;
+}
+.schedule-section::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: min(700px, 90%);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(212,168,83,0) 0%, rgba(212,168,83,0.35) 50%, rgba(212,168,83,0) 100%);
+}
+.schedule-inner {
+  max-width: 1060px;
+  margin: 0 auto;
+  text-align: center;
+}
+.schedule-heading {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(46px, 7vw, 92px);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  color: #F5EFE7;
+  margin: 0 0 clamp(44px, 6vh, 72px);
+}
+.schedule-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(20px, 3vw, 52px);
+  text-align: left;
+}
+@media (max-width: 680px) {
+  .schedule-grid { grid-template-columns: 1fr; }
+}
+.schedule-day {
+  position: relative;
+  padding: clamp(28px, 4vw, 48px);
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.046) 0%, rgba(255,255,255,0.016) 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.10), 0 28px 72px rgba(0,0,0,0.5);
+}
+.schedule-day::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: linear-gradient(160deg,
+    rgba(255,255,255,0.46) 0%,
+    rgba(255,255,255,0.12) 35%,
+    rgba(255,255,255,0)    60%,
+    rgba(255,255,255,0.13) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none;
+}
+.schedule-day-label {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #D4A853;
+  margin: 0 0 7px;
+}
+.schedule-day-title {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(22px, 2.6vw, 34px);
+  color: #F5EFE7;
+  margin: 0 0 clamp(18px, 2.5vw, 32px);
+  line-height: 1.1;
+}
+.schedule-divider {
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, #D4A853, rgba(212,168,83,0));
+  border: 0;
+  margin: 0 0 clamp(20px, 2.8vw, 34px);
+}
+.schedule-timeline {
+  position: relative;
+  padding-left: 22px;
+}
+.schedule-timeline::before {
+  content: "";
+  position: absolute;
+  left: 3px; top: 8px; bottom: 8px;
+  width: 1px;
+  background: linear-gradient(180deg,
+    rgba(212,168,83,0.55) 0%,
+    rgba(212,168,83,0.12) 100%);
+}
+.schedule-item {
+  position: relative;
+  margin-bottom: 22px;
+}
+.schedule-item:last-child { margin-bottom: 0; }
+.schedule-item::before {
+  content: "";
+  position: absolute;
+  left: -20px; top: 5px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #D4A853;
+  box-shadow: 0 0 10px rgba(212,168,83,0.65), 0 0 0 2px rgba(212,168,83,0.18);
+  transition: box-shadow 0.3s ease;
+}
+.schedule-item:hover::before {
+  box-shadow: 0 0 16px rgba(212,168,83,0.9), 0 0 0 4px rgba(212,168,83,0.25);
+}
+.schedule-item-time {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #D4A853;
+  margin: 0 0 4px;
+}
+.schedule-item-name {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 300;
+  font-size: clamp(14.5px, 1.05vw, 16.5px);
+  color: rgba(245,239,231,0.82);
+  margin: 0;
+  line-height: 1.4;
+  transition: color 0.22s ease;
+}
+.schedule-item:hover .schedule-item-name {
+  color: rgba(245,239,231,1);
+}
+
+/* Slide-in from left for schedule items */
+.schedule-item.reveal {
+  opacity: 0;
+  transform: translateX(-18px);
+  transition: opacity 0.75s cubic-bezier(0.22,1,0.36,1), transform 0.75s cubic-bezier(0.22,1,0.36,1);
+}
+.schedule-item.reveal.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* Tier overrides */
+.tier-low .schedule-day {
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.10), 0 8px 24px rgba(0,0,0,0.5);
+}
+
+/* ============================ Mobile Nav ============================ */
+.nav-desktop-items {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.mob-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5.5px;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(255,255,255,0.85);
+  z-index: 60;
+  flex-shrink: 0;
+}
+.mob-bar {
+  width: 18px;
+  height: 1.4px;
+  background: currentColor;
+  border-radius: 2px;
+  transition: transform 320ms cubic-bezier(0.22,1,0.36,1),
+              opacity 220ms ease,
+              width 220ms ease;
+  transform-origin: center;
+}
+.mob-hamburger.is-open .mob-bar:nth-child(1) { transform: translateY(6.9px) rotate(45deg); }
+.mob-hamburger.is-open .mob-bar:nth-child(2) { opacity: 0; width: 0; }
+.mob-hamburger.is-open .mob-bar:nth-child(3) { transform: translateY(-6.9px) rotate(-45deg); }
+
+@media (max-width: 767px) {
+  .nav-desktop-items { display: none !important; }
+  .mob-hamburger { display: flex; }
+}
+
+/* Full-screen mobile menu */
+.mob-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 48;
+  background: rgba(4,4,6,0.97);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  display: flex;
+  flex-direction: column;
+  padding: 110px 36px 52px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity 320ms cubic-bezier(0.4,0,0.2,1),
+              transform 380ms cubic-bezier(0.22,1,0.36,1);
+  overflow-y: auto;
+}
+.mob-menu.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.mob-menu-group { margin-bottom: 32px; }
+.mob-menu-group-label {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #D4A853;
+  margin: 0 0 14px;
+  opacity: 0.85;
+}
+.mob-menu-link {
+  display: block;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(26px, 6.5vw, 40px);
+  color: rgba(245,239,231,0.75);
+  text-decoration: none;
+  line-height: 1.25;
+  margin-bottom: 2px;
+  opacity: 0;
+  transform: translateX(-14px);
+  transition: opacity 380ms cubic-bezier(0.22,1,0.36,1),
+              transform 420ms cubic-bezier(0.22,1,0.36,1),
+              color 200ms ease;
+}
+.mob-menu.is-open .mob-menu-link { opacity: 1; transform: none; }
+.mob-menu-link:hover { color: #F5EFE7; }
+
+.mob-menu-rule {
+  width: 100%;
+  height: 1px;
+  border: 0;
+  background: rgba(245,239,231,0.07);
+  margin: 4px 0 32px;
+}
+.mob-menu-bottom {
+  margin-top: auto;
+  padding-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 400ms ease, transform 400ms cubic-bezier(0.22,1,0.36,1);
+}
+.mob-menu.is-open .mob-menu-bottom {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero CTA: stack buttons on mobile */
+@media (max-width: 600px) {
+  .hero-cta-row {
+    flex-direction: column;
+    gap: 10px !important;
+  }
+}
 </style>
 </head>
 <body class="bg-black text-white">
 <div id="root"></div>
 
-<script type="text/babel" data-presets="env,react">
+<script>
+// ============================================================
+// 1. DEVICE TIER DETECTION
+// Runs synchronously so .tier-* class is on <body> before
+// React renders, giving CSS the right overrides from frame 1.
+// ============================================================
+const DEVICE_TIER = (function detectTier() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'low';
 
+  const cores = navigator.hardwareConcurrency || 2;
+  const mem   = navigator.deviceMemory; // Chrome only; undefined elsewhere
+  const ua    = navigator.userAgent;
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
 
-const { useState, useEffect, useLayoutEffect, useRef } = React;
+  // Honour data-saver / slow network
+  const conn = navigator.connection;
+  if (conn && (conn.saveData ||
+      conn.effectiveType === 'slow-2g' ||
+      conn.effectiveType === '2g')) return 'low';
 
+  if (isMobile) {
+    // Modern flagship phones have 6-8 cores — give them mid-tier.
+    // Budget / mid-range phones stay low.
+    return cores >= 6 ? 'mid' : 'low';
+  }
+
+  // Desktop / laptop heuristics
+  if (mem !== undefined) {
+    if (mem >= 8 && cores >= 8) return 'high'; // MacBook Pro, gaming rig, etc.
+    if (mem >= 4 || cores >= 6) return 'mid';  // Average laptop, Chromebook
+    return 'low';
+  }
+  // Fallback when deviceMemory is not reported (Firefox, Safari)
+  if (cores >= 8) return 'high';
+  if (cores >= 4) return 'mid';
+  return 'low';
+})();
+
+document.body.classList.add('tier-' + DEVICE_TIER);
+
+// ============================================================
+// 2. htm SETUP  (replaces Babel Standalone)
+// htm lets us write JSX-like template literals natively.
+// ============================================================
+const html = htm.bind(React.createElement);
+const { useState, useEffect, useLayoutEffect, useRef, useCallback } = React;
+
+// ============================================================
+// 3. CONFIG
+// ============================================================
 const NAV_ITEMS = [
   { label: 'ABOUT',              items: ['THE SECRETARIAT', 'MUN @ PPCHS'] },
   { label: 'DELEGATE RESOURCES', items: ['CONFERENCE SCHEDULE', 'DELEGATE HANDBOOK', 'POSITION PAPERS'] },
   { label: 'COMMITTEES',         items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'SPECIALIZED', 'CRISIS'] },
 ];
+const ITEM_HREFS = {
+  'CONFERENCE SCHEDULE': '#schedule',
+  'REGISTRATION': 'https://docs.google.com/forms/d/e/1FAIpQLSdSQx3ZYI0sBthYWoXN9pQKQ6hqGzLzRkRKu4CM7QMQka8F3Q/viewform?usp=publish-editor',
+};
+
 const VIDEO_SRC = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260422_191657_800d4e1f-7ab3-41af-90b6-9bd3039eb294.mp4';
 
-function LoadingOverlay({ onDone }) {
-  const [exiting, setExiting] = React.useState(false);
-  const [showSkip, setShowSkip] = React.useState(false);
-  const [boltState, setBoltState] = React.useState('off'); // off | on | fading
-  const [sparkleOn, setSparkleOn] = React.useState(false);
-  const [glitchOn, setGlitchOn] = React.useState(false);
-  const timersRef = React.useRef([]);
-  const doneCalledRef = React.useRef(false);
+// Per-tier video configuration
+const VIDEO_CFG = {
+  //          maxWidth  fps  maxFrames   preload
+  high: { maxWidth: 1920, fps: 30, maxFrames: Infinity, preload: 'auto'     },
+  mid:  { maxWidth: 960,  fps: 24, maxFrames: 80,       preload: 'metadata' },
+  low:  { maxWidth: 0,    fps: 0,  maxFrames: 0,        preload: 'metadata' },
+};
+const vCfg = VIDEO_CFG[DEVICE_TIER];
 
-  const beginExit = React.useCallback(() => {
+// Per-tier loading-overlay timeline (ms from mount)
+const OVERLAY_TIMELINE = {
+  // Full cinematic sequence
+  high: { showSkip: 1400, bolt: 2700, sparkleOn: 3400, sparkleOff: 3900,
+          glitchOn: 3800, glitchOff: 4150, boltFade: 4500, exit: 6400 },
+  // Same beats, compressed to ~half duration
+  mid:  { showSkip: 800,  bolt: 1400, sparkleOn: 1800, sparkleOff: 2100,
+          glitchOn: 2000, glitchOff: 2300, boltFade: 2400, exit: 3600 },
+  // Just a quick title fade — no bolt / sparkle / glitch
+  low:  { showSkip: 0,    bolt: 0,    sparkleOn: 0,    sparkleOff: 0,
+          glitchOn: 0,    glitchOff: 0,    boltFade: 0,    exit: 1400 },
+};
+const OT = OVERLAY_TIMELINE[DEVICE_TIER];
+
+// ============================================================
+// 4. COMPONENTS
+// ============================================================
+
+// --- LoadingOverlay ---
+function LoadingOverlay({ onDone }) {
+  const [exiting,   setExiting]   = useState(false);
+  const [showSkip,  setShowSkip]  = useState(DEVICE_TIER === 'low'); // show skip immediately on low
+  const [boltState, setBoltState] = useState('off'); // 'off' | 'on' | 'fading'
+  const [sparkleOn, setSparkleOn] = useState(false);
+  const [glitchOn,  setGlitchOn]  = useState(false);
+  const timersRef    = useRef([]);
+  const doneCalledRef = useRef(false);
+
+  const beginExit = useCallback(() => {
     if (doneCalledRef.current) return;
     doneCalledRef.current = true;
     timersRef.current.forEach(clearTimeout);
@@ -535,99 +1221,114 @@ function LoadingOverlay({ onDone }) {
     setTimeout(() => onDone && onDone(), 1100);
   }, [onDone]);
 
-  React.useEffect(() => {
-    // Timeline (ms from mount):
-    //   0   - pre-text "Loading…" begins fade (CSS-driven)
-    // 240  - wordmark begins clip-path reveal (CSS-driven, 1.1s)
-    // 700  - Skip pill fades in
-    // 1280 - gold lightning starts drawing
-    // 1560 - sparkle flashes
-    // 1820 - glitch event (title shift + gold bar)
-    // 2050 - lightning starts fading out
-    // 2700 - exit begins
-    // 3550 - onDone
+  useEffect(() => {
     const t = timersRef.current;
-    t.push(setTimeout(() => setShowSkip(true), 1400));
-    t.push(setTimeout(() => setBoltState('on'), 2700));
-    t.push(setTimeout(() => setSparkleOn(true), 3400));
-    t.push(setTimeout(() => setSparkleOn(false), 3900));
-    t.push(setTimeout(() => setGlitchOn(true), 3800));
-    t.push(setTimeout(() => setGlitchOn(false), 4150));
-    t.push(setTimeout(() => setBoltState('fading'), 4500));
-    t.push(setTimeout(beginExit, 6400));
+
+    if (DEVICE_TIER !== 'low') {
+      if (OT.showSkip)   t.push(setTimeout(() => setShowSkip(true),        OT.showSkip));
+      if (OT.bolt)       t.push(setTimeout(() => setBoltState('on'),        OT.bolt));
+      if (OT.sparkleOn)  t.push(setTimeout(() => setSparkleOn(true),        OT.sparkleOn));
+      if (OT.sparkleOff) t.push(setTimeout(() => setSparkleOn(false),       OT.sparkleOff));
+      if (OT.glitchOn)   t.push(setTimeout(() => setGlitchOn(true),         OT.glitchOn));
+      if (OT.glitchOff)  t.push(setTimeout(() => setGlitchOn(false),        OT.glitchOff));
+      if (OT.boltFade)   t.push(setTimeout(() => setBoltState('fading'),    OT.boltFade));
+    }
+
+    t.push(setTimeout(beginExit, OT.exit));
     return () => t.forEach(clearTimeout);
   }, [beginExit]);
 
-  // Jagged lightning polyline. Sits behind the wordmark.
   const boltPath = "M 8 110 L 80 78 L 140 132 L 210 62 L 290 134 L 360 76 L 440 142 L 520 70 L 605 128 L 685 84 L 760 118 L 820 96";
 
-  return (
-    <div className={"loading-overlay" + (exiting ? " is-exiting" : "")}>
+  // Low tier: minimal overlay — just the wordmark fading in then out
+  if (DEVICE_TIER === 'low') {
+    return html`
+      <div className=${"loading-overlay" + (exiting ? " is-exiting" : "")}>
+        <div className="loading-stage">
+          <h2 className="loading-title" aria-label="JAGMUN III">JAGMUN III</h2>
+        </div>
+        <button
+          type="button"
+          className="loading-skip is-on"
+          onClick=${beginExit}
+          aria-label="Skip intro"
+        >Skip</button>
+      </div>
+    `;
+  }
+
+  // Mid / High tier: full sequence
+  return html`
+    <div className=${"loading-overlay" + (exiting ? " is-exiting" : "")}>
       <div className="loading-stage">
-        <span className="loading-pre">Loading…</span>
+        <span className="loading-pre">Loading\u2026</span>
 
         <svg
-          className={"loading-bolt " + (boltState === 'on' ? 'is-on' : boltState === 'fading' ? 'is-fading is-on' : '')}
+          className=${"loading-bolt " + (boltState === 'on' ? 'is-on' : boltState === 'fading' ? 'is-fading is-on' : '')}
           viewBox="0 0 840 200"
           preserveAspectRatio="none"
           aria-hidden="true"
         >
-          <path d={boltPath} />
+          <path d=${boltPath} />
         </svg>
 
-        <h2 className={"loading-title " + (glitchOn ? 'is-glitching' : '')} aria-label="JAGMUN II">
-          JAGMUN II
+        <h2 className=${"loading-title" + (glitchOn ? ' is-glitching' : '')} aria-label="JAGMUN III">
+          JAGMUN III
         </h2>
 
-        <div className={"loading-glitch-bar " + (glitchOn ? 'is-on' : '')} aria-hidden="true" />
+        <div className=${"loading-glitch-bar" + (glitchOn ? ' is-on' : '')} aria-hidden="true"></div>
 
         <svg
-          className={"loading-sparkle " + (sparkleOn ? 'is-on' : '')}
+          className=${"loading-sparkle" + (sparkleOn ? ' is-on' : '')}
           viewBox="0 0 24 24"
           fill="currentColor"
           aria-hidden="true"
-          style={{ top: '8%', left: '64%' }}
+          style=${{ top: '8%', left: '64%' }}
         >
-          {/* Four-point sparkle */}
           <path d="M12 0 L13.4 10.6 L24 12 L13.4 13.4 L12 24 L10.6 13.4 L0 12 L10.6 10.6 Z" />
         </svg>
       </div>
 
       <button
         type="button"
-        className={"loading-skip " + (showSkip ? 'is-on' : '')}
-        onClick={beginExit}
+        className=${"loading-skip" + (showSkip ? ' is-on' : '')}
+        onClick=${beginExit}
         aria-label="Skip intro"
-      >
-        Skip
-      </button>
+      >Skip</button>
     </div>
-  );
+  `;
 }
 
+// --- NavBar ---
 function NavBar() {
-  const [openIdx, setOpenIdx] = React.useState(null);
-  const [positions, setPositions] = React.useState([]);
-  const navRef = React.useRef(null);
-  const triggerRefs = React.useRef([]);
-  const closeTimer = React.useRef(null);
+  const [openIdx,   setOpenIdx]  = useState(null);
+  const [positions, setPositions] = useState([]);
+  const [menuOpen,  setMenuOpen]  = useState(false);
+  const navRef      = useRef(null);
+  const triggerRefs = useRef([]);
+  const closeTimer  = useRef(null);
 
-  const measurePositions = React.useCallback(() => {
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  const measurePositions = useCallback(() => {
     if (!navRef.current) return;
     const navRect = navRef.current.getBoundingClientRect();
     const xs = NAV_ITEMS.map((_, i) => {
-      const t = triggerRefs.current[i];
-      if (!t) return 0;
-      const r = t.getBoundingClientRect();
+      const el = triggerRefs.current[i];
+      if (!el) return 0;
+      const r = el.getBoundingClientRect();
       return r.left + r.width / 2 - navRect.left;
     });
     setPositions(xs);
   }, []);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     measurePositions();
     window.addEventListener('resize', measurePositions);
-    // Re-measure after web fonts settle (Instrument Serif/Barlow can shift widths)
     const f = setTimeout(measurePositions, 600);
     return () => {
       window.removeEventListener('resize', measurePositions);
@@ -635,143 +1336,431 @@ function NavBar() {
     };
   }, [measurePositions]);
 
-  const openMenu = (idx) => {
-    clearTimeout(closeTimer.current);
-    setOpenIdx(idx);
-  };
-  const scheduleClose = () => {
-    clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setOpenIdx(null), 180);
-  };
-  const cancelClose = () => clearTimeout(closeTimer.current);
+  const openMenu      = (idx) => { clearTimeout(closeTimer.current); setOpenIdx(idx); };
+  const scheduleClose = ()    => { clearTimeout(closeTimer.current); closeTimer.current = setTimeout(() => setOpenIdx(null), 180); };
+  const cancelClose   = ()    => clearTimeout(closeTimer.current);
 
-  return (
-    <nav ref={navRef} className="fixed top-5 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap">
-      <div className="liquid-glass flex items-center gap-5 rounded px-4 py-2">
-        <LogoMark />
-        {NAV_ITEMS.map((item, idx) => (
-          <a
-            key={item.label}
-            href="#"
-            ref={(el) => { triggerRefs.current[idx] = el; }}
-            onMouseEnter={() => openMenu(idx)}
-            onMouseLeave={scheduleClose}
-            className={
-              "nav-trigger text-sm font-body font-light transition-colors duration-200 " +
-              (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')
-            }
-          >
-            {item.label}
-            <span className="caret" aria-hidden="true"></span>
-          </a>
-        ))}
-        <a href="#" className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-4 py-1.5 transition-all duration-200 hover:scale-[1.04] active:scale-[0.97]">REGISTRATION</a>
-        <a href="#" aria-label="Instagram" className="text-white/70 hover:text-white transition-colors duration-200 flex items-center">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-          </svg>
-        </a>
-      </div>
+  const smoothScrollTo = (href) => {
+    const target = document.getElementById(href.slice(1));
+    if (!target) return;
+    if (window.__jagLenis) {
+      window.__jagLenis.scrollTo(target, { duration: 1.35 });
+    } else {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
-      {/* Dropdown panels — siblings of the pill so they escape its overflow:hidden */}
-      {NAV_ITEMS.map((item, idx) => (
-        <div
-          key={item.label}
-          className={"nav-dropdown" + (openIdx === idx ? " is-open" : "")}
-          style={{ left: positions[idx] || 0 }}
-          onMouseEnter={() => { cancelClose(); openMenu(idx); }}
-          onMouseLeave={scheduleClose}
-          aria-hidden={openIdx !== idx}
-        >
-          <div className="nav-dropdown-card">
-            {item.items.map((sub) => (
-              <a key={sub} href="#" className="nav-dropdown-item"><span className="lbl">{sub}</span></a>
-            ))}
+  // Stagger delay for mobile menu links (flat index across all groups)
+  let linkIdx = 0;
+  const mobGroups = NAV_ITEMS.map((group) => ({
+    label: group.label,
+    links: group.items.map((sub) => ({ sub, delay: (++linkIdx) * 45 + 40 })),
+  }));
+  const mobBottomDelay = linkIdx * 45 + 100;
+
+  return html`
+    <${React.Fragment}>
+      <nav ref=${navRef} className="fixed top-5 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap">
+        <div className="liquid-glass flex items-center gap-3 rounded px-4 py-2">
+          <${LogoMark} />
+
+          <!-- Desktop items -->
+          <div className="nav-desktop-items">
+            ${NAV_ITEMS.map((item, idx) => html`
+              <a
+                key=${item.label}
+                href="#"
+                ref=${(el) => { triggerRefs.current[idx] = el; }}
+                onMouseEnter=${() => openMenu(idx)}
+                onMouseLeave=${scheduleClose}
+                className=${"nav-trigger text-sm font-body font-light transition-colors duration-200 " +
+                  (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')}
+              >
+                ${item.label}
+                <span className="caret" aria-hidden="true"></span>
+              </a>
+            `)}
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdSQx3ZYI0sBthYWoXN9pQKQ6hqGzLzRkRKu4CM7QMQka8F3Q/viewform?usp=publish-editor"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-4 py-1.5 transition-all duration-200 hover:scale-[1.04] active:scale-[0.97]"
+            >REGISTRATION</a>
+            <a
+              href="https://www.instagram.com/jagmun_ppchs/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="text-white/70 hover:text-white transition-colors duration-200 flex items-center"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </a>
           </div>
+
+          <!-- Mobile hamburger -->
+          <button
+            type="button"
+            className=${"mob-hamburger" + (menuOpen ? " is-open" : "")}
+            onClick=${() => setMenuOpen((m) => !m)}
+            aria-label=${menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded=${menuOpen}
+          >
+            <span className="mob-bar"></span>
+            <span className="mob-bar"></span>
+            <span className="mob-bar"></span>
+          </button>
         </div>
-      ))}
-    </nav>
-  );
+
+        <!-- Desktop dropdowns -->
+        ${NAV_ITEMS.map((item, idx) => html`
+          <div
+            key=${item.label}
+            className=${"nav-dropdown" + (openIdx === idx ? " is-open" : "")}
+            style=${{ left: positions[idx] || 0 }}
+            onMouseEnter=${() => { cancelClose(); openMenu(idx); }}
+            onMouseLeave=${scheduleClose}
+            aria-hidden=${openIdx !== idx}
+          >
+            <div className="nav-dropdown-card">
+              ${item.items.map((sub) => {
+                const href = ITEM_HREFS[sub] || '#';
+                const onClick = href.startsWith('#') ? (e) => {
+                  e.preventDefault();
+                  smoothScrollTo(href);
+                } : undefined;
+                return html`
+                  <a key=${sub} href=${href} onClick=${onClick} className="nav-dropdown-item">
+                    <span className="lbl">${sub}</span>
+                  </a>
+                `;
+              })}
+            </div>
+          </div>
+        `)}
+      </nav>
+
+      <!-- Mobile full-screen menu -->
+      <div className=${"mob-menu" + (menuOpen ? " is-open" : "")} aria-hidden=${!menuOpen}>
+
+        ${mobGroups.map((group) => html`
+          <div key=${group.label} className="mob-menu-group">
+            <p className="mob-menu-group-label">${group.label}</p>
+            ${group.links.map(({ sub, delay }) => {
+              const href = ITEM_HREFS[sub] || '#';
+              const onClick = (e) => {
+                e.preventDefault();
+                setMenuOpen(false);
+                if (href.startsWith('#')) {
+                  setTimeout(() => smoothScrollTo(href), 340);
+                } else {
+                  window.open(href, '_blank', 'noopener,noreferrer');
+                }
+              };
+              return html`
+                <a
+                  key=${sub}
+                  href=${href}
+                  onClick=${onClick}
+                  className="mob-menu-link"
+                  style=${{ transitionDelay: menuOpen ? delay + 'ms' : '0ms' }}
+                >${sub}</a>
+              `;
+            })}
+          </div>
+          <hr className="mob-menu-rule" />
+        `)}
+
+        <div
+          className="mob-menu-bottom"
+          style=${{ transitionDelay: menuOpen ? mobBottomDelay + 'ms' : '0ms' }}
+        >
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdSQx3ZYI0sBthYWoXN9pQKQ6hqGzLzRkRKu4CM7QMQka8F3Q/viewform?usp=publish-editor"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-5 py-2.5 transition-all duration-200 active:scale-[0.97]"
+          >REGISTRATION</a>
+          <a
+            href="https://www.instagram.com/jagmun_ppchs/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+            className="text-white/55 hover:text-white transition-colors duration-200 flex items-center"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+          </a>
+        </div>
+
+      </div>
+    </${React.Fragment}>
+  `;
 }
 
+// --- LogoMark ---
 function LogoMark() {
-  return (
+  return html`
     <img
       src="assets/jagmun-logo.png"
       alt="JagMUN"
       width="52"
       height="52"
       draggable="false"
-      style={{
-        width: 52,
-        height: 52,
+      style=${{
+        width: 52, height: 52,
         objectFit: 'contain',
         display: 'block',
         userSelect: 'none',
-        marginLeft: -4,
-        marginRight: -4,
+        marginLeft: -4, marginRight: -4,
         filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))',
       }}
     />
-  );
+  `;
 }
 
+// --- Marquee ---
+function Marquee() {
+  const PHRASES = ['JAGMUN III', 'September 19\u201320, 2026'];
+  const units = [];
+  for (let r = 0; r < 5; r++) PHRASES.forEach((p) => units.push(p));
+
+  const Group = ({ hidden }) => html`
+    <div className="marquee-group" aria-hidden=${hidden ? 'true' : undefined}>
+      ${units.map((p, i) => html`
+        <span className="marquee-item" key=${i}>
+          ${p}<span className="marquee-star" aria-hidden="true">${'\u2726'}</span>
+        </span>
+      `)}
+    </div>
+  `;
+
+  return html`
+    <div className="marquee" role="presentation">
+      <div className="marquee-track">
+        <${Group} />
+        <${Group} hidden=${true} />
+      </div>
+    </div>
+  `;
+}
+
+// --- DarkMarquee ---
+function DarkMarquee() {
+  const PHRASES = ['Conference Schedule', 'JAGMUN III', 'September 19\u201320', '2026'];
+  const units = [];
+  for (let r = 0; r < 6; r++) PHRASES.forEach((p) => units.push(p));
+
+  const Group = ({ hidden }) => html`
+    <div className="marquee-dark-group" aria-hidden=${hidden ? 'true' : undefined}>
+      ${units.map((p, i) => html`
+        <span className="marquee-dark-item" key=${i}>
+          ${p}<span className="marquee-dark-dot" aria-hidden="true">${'\u2726'}</span>
+        </span>
+      `)}
+    </div>
+  `;
+
+  return html`
+    <div className="marquee-dark" role="presentation">
+      <div className="marquee-dark-track">
+        <${Group} />
+        <${Group} hidden=${true} />
+      </div>
+    </div>
+  `;
+}
+
+// --- LetterSection ---
+function LetterSection() {
+  return html`
+    <section id="letter" className="letter-section">
+      <div className="letter-inner">
+        <p className="letter-eyebrow reveal">A Note to Our Delegates</p>
+        <h2 className="letter-heading reveal" style=${{ transitionDelay: '0.08s' }}>
+          A Letter from the Directors
+        </h2>
+
+        <div className="letter-card reveal" style=${{ transitionDelay: '0.16s' }}>
+          <p className="letter-greeting">Dear Delegates and Faculty Advisors,</p>
+
+          <p className="letter-body letter-body--lead">
+            Welcome \u2014 this is placeholder copy reserved for the Directors\u2019 letter; replace it with your own words. It is set and styled to show exactly how the finished message will read, with a comfortable line length, generous leading, and a serif accent to open the page.
+          </p>
+          <p className="letter-body">
+            Use this space to greet your delegates, introduce the spirit of JAGMUN III, and set the tone for the weekend ahead. A paragraph or two works best \u2014 the layout will expand gracefully to fit whatever you decide to write.
+          </p>
+          <p className="letter-body">
+            When you\u2019re ready, drop in the real letter and the signature below will carry your names.
+          </p>
+
+          <hr className="letter-rule" />
+          <p className="letter-sign-line">With warmest regards,</p>
+          <p className="letter-sign-name">The JAGMUN III Secretariat</p>
+          <p className="letter-sign-role">Directors-General</p>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// --- SiteFooter ---
+function SiteFooter() {
+  return html`
+    <footer className="site-footer">
+      <hr className="footer-rule reveal" />
+      <p className="footer-contact reveal" style=${{ transitionDelay: '0.06s' }}>
+        For any questions, please reach out to${' '}
+        <a className="footer-email" href="mailto:jagmun.ppchs@gmail.com">jagmun.ppchs@gmail.com</a>
+      </p>
+      <h2 className="footer-wordmark reveal" style=${{ transitionDelay: '0.12s' }}>JAGMUN III</h2>
+      <a
+        className="footer-ig reveal"
+        style=${{ transitionDelay: '0.18s' }}
+        href="https://www.instagram.com/jagmun_ppchs/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Instagram"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+      </a>
+      <p className="footer-fine reveal" style=${{ transitionDelay: '0.22s' }}>
+        JAGMUN III \u00B7 September 19\u201320, 2026
+      </p>
+    </footer>
+  `;
+}
+
+// --- ConferenceSchedule ---
+function ConferenceSchedule() {
+  const SAT = [
+    { time: '8:00 – 9:00 AM',      name: 'Registration' },
+    { time: '9:00 – 10:00 AM',     name: 'Opening Ceremony' },
+    { time: '10:00 AM – 12:00 PM', name: 'Session I' },
+    { time: '12:00 – 1:00 PM',     name: 'Lunch' },
+    { time: '1:15 – 4:15 PM',      name: 'Session II' },
+    { time: '4:15 – 4:45 PM',      name: 'Break' },
+    { time: '4:45 – 7:00 PM',      name: 'Session III' },
+  ];
+  const SUN = [
+    { time: '8:00 – 9:00 AM',      name: 'Check-In' },
+    { time: '9:15 – 11:15 AM',     name: 'Session IV' },
+    { time: '11:30 AM – 12:30 PM', name: 'Lunch' },
+    { time: '12:45 – 2:00 PM',     name: 'Session V' },
+    { time: '2:30 – 3:30 PM',      name: 'Closing Ceremony' },
+  ];
+
+  return html`
+    <section id="schedule" className="schedule-section">
+      <div className="schedule-inner">
+        <p className="letter-eyebrow reveal">JAGMUN III \u00B7 September 19\u201320, 2026</p>
+        <h2 className="schedule-heading reveal" style=${{ transitionDelay: '0.08s' }}>
+          Conference Schedule
+        </h2>
+        <div className="schedule-grid">
+
+          <div className="schedule-day reveal" style=${{ transitionDelay: '0.14s' }}>
+            <p className="schedule-day-label">Day One</p>
+            <h3 className="schedule-day-title">Saturday, September 19th</h3>
+            <hr className="schedule-divider" />
+            <div className="schedule-timeline">
+              ${SAT.map((item, i) => html`
+                <div key=${i} className="schedule-item reveal" style=${{ transitionDelay: (0.18 + i * 0.07) + 's' }}>
+                  <p className="schedule-item-time">${item.time}</p>
+                  <p className="schedule-item-name">${item.name}</p>
+                </div>
+              `)}
+            </div>
+          </div>
+
+          <div className="schedule-day reveal" style=${{ transitionDelay: '0.22s' }}>
+            <p className="schedule-day-label">Day Two</p>
+            <h3 className="schedule-day-title">Sunday, September 20th</h3>
+            <hr className="schedule-divider" />
+            <div className="schedule-timeline">
+              ${SUN.map((item, i) => html`
+                <div key=${i} className="schedule-item reveal" style=${{ transitionDelay: (0.26 + i * 0.07) + 's' }}>
+                  <p className="schedule-item-time">${item.time}</p>
+                  <p className="schedule-item-name">${item.name}</p>
+                </div>
+              `)}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// ============================================================
+// 5. APP — wires everything together
+// ============================================================
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [loading,     setLoading]     = useState(true);
+  const [mounted,     setMounted]     = useState(false);
   const [framesReady, setFramesReady] = useState(false);
 
-  const videoRef = useRef(null);
-  const videoBgRef = useRef(null);
+  const videoRef       = useRef(null);
   const displayCanvasRef = useRef(null);
-  const bgCanvasRef = useRef(null);
-  const framesRef = useRef([]);
+  const framesRef      = useRef([]);
+  const lenisRef       = useRef(null);
 
-  // Mount fade-in — only after the loading overlay is gone, so the hero
-  // title doesn't appear *behind* the loader (would read as JAGMUN II twice).
+  // Fade in the hero once the loading overlay is gone
   useEffect(() => {
     if (loading) return;
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, [loading]);
 
-  // Effect 1 — frame capture (boomerang setup)
+  // Effect 1 — frame capture for boomerang (high / mid only)
   useEffect(() => {
+    if (vCfg.maxFrames === 0) return; // low tier: skip entirely
+
     const video = videoRef.current;
     if (!video) return;
 
     let capturing = true;
-    let lastTime = -1;
-    const MAX_WIDTH = 1920;
-    const frames = [];
+    let lastTime  = -1;
+    const frames  = [];
     let rafId = null;
     let vfcId = null;
 
     const captureFrame = () => {
       if (!capturing) return;
-      if (video.readyState < 2) {
-        scheduleNext();
+      if (video.readyState < 2)             { scheduleNext(); return; }
+      if (video.currentTime === lastTime)   { scheduleNext(); return; }
+
+      // Stop once we've hit the frame cap (saves memory on mid tier)
+      if (frames.length >= vCfg.maxFrames) {
+        capturing = false;
+        framesRef.current = frames;
+        setFramesReady(true);
         return;
       }
-      if (video.currentTime === lastTime) {
-        scheduleNext();
-        return;
-      }
+
       lastTime = video.currentTime;
-      const scale = Math.min(1, MAX_WIDTH / video.videoWidth);
-      const w = Math.max(1, Math.floor(video.videoWidth * scale));
+      const scale = Math.min(1, vCfg.maxWidth / video.videoWidth);
+      const w = Math.max(1, Math.floor(video.videoWidth  * scale));
       const h = Math.max(1, Math.floor(video.videoHeight * scale));
       const canvas = document.createElement('canvas');
-      canvas.width = w;
+      canvas.width  = w;
       canvas.height = h;
-      const ctx = canvas.getContext('2d');
       try {
-        ctx.drawImage(video, 0, 0, w, h);
+        canvas.getContext('2d').drawImage(video, 0, 0, w, h);
         frames.push(canvas);
       } catch (e) {
-        // CORS / tainted canvas — bail
+        // CORS / tainted canvas — bail out
         capturing = false;
         return;
       }
@@ -787,17 +1776,11 @@ function App() {
       }
     };
 
-    const onLoaded = () => {
-      video.play().catch(() => {});
-      scheduleNext();
-    };
-
-    const onEnded = () => {
+    const onLoaded = () => { video.play().catch(() => {}); scheduleNext(); };
+    const onEnded  = () => {
       capturing = false;
       framesRef.current = frames;
-      if (frames.length > 0) {
-        setFramesReady(true);
-      }
+      if (frames.length > 0) setFramesReady(true);
     };
 
     video.addEventListener('loadedmetadata', onLoaded);
@@ -812,145 +1795,232 @@ function App() {
     };
   }, []);
 
-  // Effect 2 — boomerang render
-  // useLayoutEffect ensures the first frame is drawn synchronously before the
-  // browser paints, eliminating the one-frame black flash on the video→canvas switch.
+  // Effect 2 — boomerang render loop (high / mid only)
   useLayoutEffect(() => {
     if (!framesReady) return;
     const canvas = displayCanvasRef.current;
-    const bgCanvas = bgCanvasRef.current;
     const frames = framesRef.current;
-    if (!canvas || !frames || frames.length === 0) return;
+    if (!canvas || frames.length === 0) return;
 
-    // Size canvas to the viewport at native device pixel density so there is
-    // no CSS upscaling. We handle the cover-crop in drawImage instead.
     const dpr = window.devicePixelRatio || 1;
+
     const sizeCanvas = () => {
-      const w = canvas.parentElement ? canvas.parentElement.clientWidth : window.innerWidth;
+      const w = canvas.parentElement ? canvas.parentElement.clientWidth  : window.innerWidth;
       const h = canvas.parentElement ? canvas.parentElement.clientHeight : window.innerHeight;
-      canvas.width = Math.round(w * dpr);
+      canvas.width  = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
-      if (bgCanvas) {
-        bgCanvas.width = canvas.width;
-        bgCanvas.height = canvas.height;
-      }
     };
     sizeCanvas();
 
-    const ctx = canvas.getContext('2d');
-    let bgCtx = bgCanvas ? bgCanvas.getContext('2d') : null;
-
-    // Cover-crop: draw `img` into ctx filling cw×ch without CSS object-fit.
-    const drawCover = (c, img) => {
-      const cw = c.width, ch = c.height;
+    // Cover-crop: fill canvas without CSS object-fit (GPU-side crop)
+    const drawCover = (img) => {
+      const cw = canvas.width, ch = canvas.height;
       const ir = img.width / img.height;
       const cr = cw / ch;
       let sx = 0, sy = 0, sw = img.width, sh = img.height;
       if (ir > cr) { sw = img.height * cr; sx = (img.width - sw) / 2; }
-      else         { sh = img.width / cr;  sy = (img.height - sh) / 2; }
-      c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
+      else         { sh = img.width  / cr; sy = (img.height - sh) / 2; }
+      canvas.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
     };
 
-    // Draw first frame immediately so the canvas is never blank when visible.
-    drawCover(canvas, frames[0]);
-    if (bgCanvas) drawCover(bgCanvas, frames[0]);
+    // Paint first frame immediately so the canvas is never blank when revealed
+    drawCover(frames[0]);
 
-    let index = 0;
+    let index     = 0;
     let direction = 1;
-    let last = performance.now();
-    const interval = 1000 / 30;
+    let last      = performance.now();
+    const interval = 1000 / vCfg.fps;
     let rafId;
 
     const render = (now) => {
       if (now - last >= interval) {
         last = now;
-        drawCover(canvas, frames[index]);
-        if (bgCanvas) drawCover(bgCanvas, frames[index]);
+        drawCover(frames[index]);
         index += direction;
-        if (index >= frames.length - 1) {
-          index = frames.length - 1;
-          direction = -1;
-        } else if (index <= 0) {
-          index = 0;
-          direction = 1;
-        }
+        if (index >= frames.length - 1) { index = frames.length - 1; direction = -1; }
+        else if (index <= 0)            { index = 0;                   direction =  1; }
       }
       rafId = requestAnimationFrame(render);
     };
     rafId = requestAnimationFrame(render);
 
-    // Re-size canvas on window resize so it stays sharp at every size.
-    const onResize = () => { sizeCanvas(); };
-    window.addEventListener('resize', onResize);
-
+    window.addEventListener('resize', sizeCanvas);
     return () => {
       cancelAnimationFrame(rafId);
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', sizeCanvas);
     };
   }, [framesReady]);
 
-  // Effect 3 — parallax mouse tracking (disabled; static background per user request)
+  // Effect 3 — Lenis smooth scroll (skip on low tier)
+  useEffect(() => {
+    if (loading || DEVICE_TIER === 'low') return;
+    const L = window.Lenis;
+    if (!L) return;
+    // High tier: slightly more inertia; mid tier: snappier
+    const duration = DEVICE_TIER === 'high' ? 1.15 : 1.0;
+    const lenis = new L({ duration, smoothWheel: true, wheelMultiplier: 0.9 });
+    lenisRef.current = lenis;
+    window.__jagLenis = lenis;
+    let id;
+    const raf = (t) => { lenis.raf(t); id = requestAnimationFrame(raf); };
+    id = requestAnimationFrame(raf);
+    return () => { cancelAnimationFrame(id); lenis.destroy(); lenisRef.current = null; window.__jagLenis = null; };
+  }, [loading]);
 
-  return (
-    <div className="min-h-screen bg-black text-white font-body overflow-x-hidden">
-      {loading && <LoadingOverlay onDone={() => setLoading(false)} />}
-      {/* Video background — kept invisible until the loading overlay is fully gone */}
-      <div ref={videoBgRef} className="fixed top-0 left-0 z-0 origin-center" style={{ width: '100vw', height: '100vh', position: 'fixed', overflow: 'hidden', opacity: mounted ? 1 : 0, transition: 'opacity 1s ease' }}>
-        <video
-          ref={videoRef}
-          src={VIDEO_SRC}
-          muted
-          playsInline
-          preload="auto"
-          crossOrigin="anonymous"
-          style={{ display: framesReady ? 'none' : 'block', width: '100%', height: '100%', objectFit: 'cover' }}
-        />
-        <canvas
-          ref={displayCanvasRef}
-          style={{ display: framesReady ? 'block' : 'none', width: '100%', height: '100%' }}
-        />
-      </div>
+  // Effect 4 — scroll reveal via IntersectionObserver (with rAF fallback)
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll('.reveal'));
+    if (els.length === 0) return;
 
-      {/* Hero title */}
-      <div
-        className={"fixed left-0 right-0 z-20 w-full px-4 transition-all duration-1000 " + (mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6")}
-        style={{ top: '126px' }}
-      >
-        <h1 className="hero-title select-none">JAGMUN II</h1>
-        <p className="hero-date select-none">Sep 27&ndash;28, 2026</p>
-      </div>
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in-view');
+              io.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
+      );
+      els.forEach((el) => io.observe(el));
+      return () => io.disconnect();
+    }
 
-      {/* Nav */}
-      <NavBar />
+    // Fallback for very old browsers
+    let frame;
+    const check = () => {
+      const vh = window.innerHeight;
+      els.forEach((el) => {
+        if (el.classList.contains('in-view')) return;
+        const r = el.getBoundingClientRect();
+        if (r.top < vh * 0.88 && r.bottom > 0) el.classList.add('in-view');
+      });
+    };
+    const onScroll = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(check); };
+    check();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('scroll', onScroll); };
+  }, [loading]);
 
-      {/* Bottom row */}
-      <div className={"fixed bottom-12 left-0 right-0 px-10 flex items-end justify-between z-20 transition-all duration-1000 delay-300 " + (mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6")}>
-        <p className="text-sm font-body font-light text-white/75 max-w-[220px] leading-relaxed">
-          
-        </p>
+  const goToLetter = useCallback(() => {
+    const el = document.getElementById('letter');
+    if (!el) return;
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(el, { duration: 1.35 });
+    } else {
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset, behavior: 'smooth' });
+    }
+  }, []);
 
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex items-center gap-3">
-          <button className="rgb-hover group relative bg-white text-black text-sm font-body font-medium rounded px-6 py-3 overflow-hidden active:scale-[0.97] transition-all duration-200 hover:scale-[1.03]">
-            <span className="relative z-10">Registration
-</span>
-            <span className="absolute inset-0 bg-gradient-to-b from-white to-white/85 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
-          </button>
-          <button className="liquid-glass group text-white text-sm font-body font-medium rounded px-6 py-3 active:scale-[0.97] transition-all duration-200 hover:scale-[1.03] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_20px_2px_rgba(255,255,255,0.07)]">
-            Committees
-          </button>
+  // For low tier the video plays straight through (no boomerang canvas needed).
+  // For high/mid, the canvas takes over once frames are ready.
+  const showVideo  = DEVICE_TIER === 'low' || !framesReady;
+  const showCanvas = DEVICE_TIER !== 'low' && framesReady;
+
+  return html`
+    <div className="bg-black text-white font-body overflow-x-hidden">
+      ${loading && html`<${LoadingOverlay} onDone=${() => setLoading(false)} />`}
+
+      <${NavBar} />
+
+      <!-- ========================= HERO ========================= -->
+      <section className="relative w-full overflow-hidden" style=${{ height: '100vh' }}>
+
+        <!-- Video / canvas background -->
+        <div
+          className="absolute inset-0 z-0"
+          style=${{ overflow: 'hidden', opacity: mounted ? 1 : 0, transition: 'opacity 1s ease' }}
+        >
+          <video
+            ref=${videoRef}
+            src=${VIDEO_SRC}
+            muted
+            playsInline
+            autoPlay=${DEVICE_TIER === 'low'}
+            loop=${DEVICE_TIER === 'low'}
+            preload=${vCfg.preload}
+            crossOrigin="anonymous"
+            style=${{ display: showVideo ? 'block' : 'none', width: '100%', height: '100%', objectFit: 'cover' }}
+          ></video>
+
+          ${DEVICE_TIER !== 'low' && html`
+            <canvas
+              ref=${displayCanvasRef}
+              style=${{ display: showCanvas ? 'block' : 'none', width: '100%', height: '100%' }}
+            ></canvas>
+          `}
         </div>
 
-        <p className="text-sm font-body font-light text-white/75 max-w-[220px] leading-relaxed text-right">
-          
-        </p>
-      </div>
+        <!-- Hero title -->
+        <div
+          className=${"absolute left-0 right-0 z-20 w-full px-4 transition-all duration-1000 " +
+            (mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6")}
+          style=${{ top: '126px' }}
+        >
+          <h1 className="hero-title select-none">JAGMUN III</h1>
+          <p className="hero-date select-none">Sep 19\u201320, 2026</p>
+        </div>
+
+        <!-- Bottom row: CTA buttons -->
+        <div
+          className=${"absolute bottom-12 left-0 right-0 px-10 flex items-end justify-between z-20 transition-all duration-1000 delay-300 " +
+            (mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6")}
+        >
+          <p className="text-sm font-body font-light text-white/75 max-w-[220px] leading-relaxed"></p>
+
+          <div className="hero-cta-row absolute left-1/2 -translate-x-1/2 bottom-0 flex items-center gap-3">
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdSQx3ZYI0sBthYWoXN9pQKQ6hqGzLzRkRKu4CM7QMQka8F3Q/viewform?usp=publish-editor"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rgb-hover group relative bg-white text-black text-sm font-body font-medium rounded px-6 py-3 overflow-hidden active:scale-[0.97] transition-all duration-200 hover:scale-[1.03]"
+            >
+              <span className="relative z-10">Registration</span>
+              <span className="absolute inset-0 bg-gradient-to-b from-white to-white/85 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+            </a>
+            <button className="liquid-glass group text-white text-sm font-body font-medium rounded px-6 py-3 active:scale-[0.97] transition-all duration-200 hover:scale-[1.03] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_20px_2px_rgba(255,255,255,0.07)]">
+              Committees
+            </button>
+          </div>
+
+          <p className="text-sm font-body font-light text-white/75 max-w-[220px] leading-relaxed text-right"></p>
+        </div>
+
+        <!-- Scroll cue -->
+        <button
+          type="button"
+          className="hero-scroll-cue"
+          onClick=${goToLetter}
+          aria-label="Scroll to the letter from the directors"
+          style=${{ opacity: mounted ? 1 : 0, transition: 'opacity 1s ease 0.6s' }}
+        >
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 9l6 6 6-6"></path>
+          </svg>
+        </button>
+      </section>
+
+      <!-- ===================== MARQUEE ===================== -->
+      <${Marquee} />
+
+      <!-- ================ LETTER FROM DIRECTORS ================ -->
+      <${LetterSection} />
+
+      <!-- ================ DARK MARQUEE DIVIDER ================ -->
+      <${DarkMarquee} />
+
+      <!-- ================ CONFERENCE SCHEDULE ================ -->
+      <${ConferenceSchedule} />
+
+      <!-- ==================== FOOTER ==================== -->
+      <${SiteFooter} />
     </div>
-  );
+  `;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-
-
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App} />`);
 </script>
 </body>
 </html>
