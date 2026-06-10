@@ -151,8 +151,37 @@ body { font-family: 'Barlow', sans-serif; }
   gap: clamp(14px, 2vw, 24px);
   margin-bottom: clamp(52px, 8vh, 90px);
 }
-@media (max-width: 600px) {
-  .committee-grid { grid-template-columns: 1fr; }
+@media (max-width: 640px) {
+  /* Single-column card grid */
+  .committee-grid { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Landscape cards on mobile — compact banners instead of tall posters */
+  .committee-card { aspect-ratio: 3 / 2; }
+
+  /* Bottom-sheet modal */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-panel {
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    max-height: min(92svh, 92vh);
+  }
+  .modal-img-wrap {
+    border-radius: 20px 20px 0 0;
+    aspect-ratio: 16 / 7;
+  }
+
+  /* Pull-handle indicator at top of sheet */
+  .modal-panel::after {
+    content: "";
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 36px; height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.2);
+    z-index: 5;
+    pointer-events: none;
+  }
 }
 
 /* ===== Committee card ===== */
@@ -309,7 +338,10 @@ body { font-family: 'Barlow', sans-serif; }
   max-width: 820px;
   width: 100%;
   border-radius: 24px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: min(90svh, 90vh);
   background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
   box-shadow: inset 0 1px 1px rgba(255,255,255,0.12), 0 40px 100px rgba(0,0,0,0.75);
   transform: translateY(40px) scale(0.96);
@@ -336,6 +368,8 @@ body { font-family: 'Barlow', sans-serif; }
   width: 100%;
   aspect-ratio: 16 / 8;
   overflow: hidden;
+  border-radius: 24px 24px 0 0;
+  flex-shrink: 0;
 }
 .modal-img-placeholder {
   position: absolute; inset: 0;

@@ -346,6 +346,12 @@ body { font-family: 'Barlow', sans-serif; }
 .member-card.reveal { transform: translateY(32px); }
 .member-card.reveal.in-view { transform: none; }
 .member-card.reveal.in-view:hover { transform: translateY(-6px); }
+
+@media (max-width: 600px) {
+  .sec-row { gap: 12px; }
+  .member-card--top    { min-width: 0; max-width: 100%; flex-basis: 100%; }
+  .member-card--senior { min-width: 0; max-width: 100%; }
+}
 </style>
 </head>
 <body class="bg-black text-white">
