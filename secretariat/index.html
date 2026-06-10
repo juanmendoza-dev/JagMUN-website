@@ -512,7 +512,7 @@ function NavBar() {
                   onMouseLeave=${scheduleClose}
                   className=${"nav-trigger text-sm font-body font-light transition-colors duration-200 " +
                     (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')}
-                >${item.label}<span className="caret" aria-hidden="true"></span></a>
+                >${item.label}<span className="caret" aria-hidden="true"></span></a>`
             )}
             <a href=${ITEM_HREFS['REGISTRATION']} target="_blank" rel="noopener noreferrer"
               className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-4 py-1.5 transition-all duration-200 hover:scale-[1.04] active:scale-[0.97]"
