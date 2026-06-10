@@ -1462,8 +1462,10 @@ function NavBar() {
                 setMenuOpen(false);
                 if (href.startsWith('#')) {
                   setTimeout(() => smoothScrollTo(href), 340);
-                } else {
+                } else if (href.startsWith('http')) {
                   window.open(href, '_blank', 'noopener,noreferrer');
+                } else {
+                  setTimeout(() => { window.location.href = href; }, 340);
                 }
               };
               return html`
@@ -1998,9 +2000,10 @@ function App() {
               <span className="relative z-10">Registration</span>
               <span className="absolute inset-0 bg-gradient-to-b from-white to-white/85 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
             </a>
-            <button className="liquid-glass group text-white text-sm font-body font-medium rounded px-6 py-3 active:scale-[0.97] transition-all duration-200 hover:scale-[1.03] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_20px_2px_rgba(255,255,255,0.07)]">
-              Committees
-            </button>
+            <a
+              href="/committees"
+              className="liquid-glass group text-white text-sm font-body font-medium rounded px-6 py-3 active:scale-[0.97] transition-all duration-200 hover:scale-[1.03] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_20px_2px_rgba(255,255,255,0.07)]"
+            >Committees</a>
           </div>
 
           <p className="text-sm font-body font-light text-white/75 max-w-[220px] leading-relaxed text-right"></p>
