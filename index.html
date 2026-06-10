@@ -1170,8 +1170,13 @@ const NAV_ITEMS = [
   { label: 'COMMITTEES',         items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'SPECIALIZED', 'CRISIS'] },
 ];
 const ITEM_HREFS = {
+  'THE SECRETARIAT':     '/secretariat',
   'CONFERENCE SCHEDULE': '#schedule',
-  'REGISTRATION': 'https://docs.google.com/forms/d/e/1FAIpQLSdSQx3ZYI0sBthYWoXN9pQKQ6hqGzLzRkRKu4CM7QMQka8F3Q/viewform?usp=publish-editor',
+  'ALL COMMITTEES':      '/committees',
+  'GENERAL ASSEMBLY':    '/committees#general-assembly',
+  'SPECIALIZED':         '/committees#specialized',
+  'CRISIS':              '/committees#crisis',
+  'REGISTRATION':        'https://docs.google.com/forms/d/e/1FAIpQLSdSQx3ZYI0sBthYWoXN9pQKQ6hqGzLzRkRKu4CM7QMQka8F3Q/viewform?usp=publish-editor',
 };
 
 const VIDEO_SRC = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260422_191657_800d4e1f-7ab3-41af-90b6-9bd3039eb294.mp4';
@@ -1428,12 +1433,13 @@ function NavBar() {
             <div className="nav-dropdown-card">
               ${item.items.map((sub) => {
                 const href = ITEM_HREFS[sub] || '#';
-                const onClick = href.startsWith('#') ? (e) => {
-                  e.preventDefault();
-                  smoothScrollTo(href);
-                } : undefined;
+                const isScroll = href.startsWith('#');
+                const isExternal = href.startsWith('http');
+                const onClick = isScroll ? (e) => { e.preventDefault(); smoothScrollTo(href); } : undefined;
                 return html`
-                  <a key=${sub} href=${href} onClick=${onClick} className="nav-dropdown-item">
+                  <a key=${sub} href=${href} onClick=${onClick} className="nav-dropdown-item"
+                    target=${isExternal ? '_blank' : undefined}
+                    rel=${isExternal ? 'noopener noreferrer' : undefined}>
                     <span className="lbl">${sub}</span>
                   </a>
                 `;

@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Secretariat — JAGMUN III</title>
+<link rel="icon" type="image/png" href="../assets/jagmun-logo.png" />
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js" crossorigin="anonymous"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+html, body { background: #000; }
+body { font-family: 'Barlow', sans-serif; }
+.rounded { border-radius: 9999px !important; }
+
+/* ===================== Liquid glass ===================== */
+.liquid-glass {
+  background: rgba(255,255,255,0.01);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+  position: relative; overflow: hidden;
+}
+.liquid-glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.4px;
+  background: linear-gradient(180deg,rgba(255,255,255,0.45) 0%,rgba(255,255,255,0.15) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,0.15) 80%,rgba(255,255,255,0.45) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+}
+.liquid-glass-strong {
+  background: rgba(255,255,255,0.01);
+  backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
+  border: none;
+  box-shadow: 4px 4px 4px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.15);
+  position: relative; overflow: hidden;
+}
+.liquid-glass-strong::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.4px;
+  background: linear-gradient(180deg,rgba(255,255,255,0.5) 0%,rgba(255,255,255,0.2) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,0.2) 80%,rgba(255,255,255,0.5) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+}
+
+/* ===================== RGB hover ===================== */
+@property --rgb-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+.rgb-hover { position: relative; }
+.rgb-hover::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.6px;
+  background: conic-gradient(from var(--rgb-angle),#ff3b8b,#ff8a3d,#ffd166,#6dd76a,#4cc9f0,#8b5cf6,#ff3b8b);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0; transition: opacity 0.35s ease; pointer-events: none; z-index: 2;
+}
+.rgb-hover:hover::after { opacity: 1; animation: rgb-spin 3.2s linear infinite; }
+.rgb-hover:hover { box-shadow: 0 0 22px 2px rgba(140,100,255,0.18),0 0 36px 8px rgba(255,120,180,0.10); }
+@keyframes rgb-spin { to { --rgb-angle: 360deg; } }
+
+/* ===================== Nav ===================== */
+.nav-trigger { position: relative; }
+.nav-trigger > .caret {
+  display: inline-block; width: 7px; height: 7px; margin-left: 6px;
+  border-right: 1.2px solid currentColor; border-bottom: 1.2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg); opacity: 0.55;
+  transition: transform 260ms cubic-bezier(0.22,1,0.36,1), opacity 200ms ease;
+}
+.nav-trigger.is-open > .caret { transform: translateY(0) rotate(225deg); opacity: 1; }
+.nav-dropdown {
+  position: absolute; top: 100%; padding: 14px 8px 8px;
+  pointer-events: none; visibility: hidden;
+  transform: translate3d(-50%,-4px,0); opacity: 0;
+  transition: opacity 220ms cubic-bezier(0.4,0,0.2,1), transform 280ms cubic-bezier(0.22,1,0.36,1), visibility 0s linear 280ms;
+  z-index: 60; will-change: transform, opacity; backface-visibility: hidden;
+}
+.nav-dropdown.is-open {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: translate3d(-50%,0,0);
+  transition: opacity 220ms cubic-bezier(0.4,0,0.2,1), transform 280ms cubic-bezier(0.22,1,0.36,1), visibility 0s linear 0s;
+}
+.nav-dropdown-card {
+  position: relative; min-width: 220px; padding: 6px; border-radius: 16px;
+  background: rgba(20,20,22,0.72);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.12),0 12px 32px rgba(0,0,0,0.45),0 2px 6px rgba(0,0,0,0.25);
+  overflow: hidden; transform: translateZ(0);
+}
+.nav-dropdown.is-open .nav-dropdown-card { background: rgba(20,20,22,0.42); backdrop-filter: blur(24px) saturate(150%); -webkit-backdrop-filter: blur(24px) saturate(150%); }
+.nav-dropdown-card::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px;
+  background: linear-gradient(180deg,rgba(255,255,255,0.5) 0%,rgba(255,255,255,0.18) 25%,rgba(255,255,255,0) 45%,rgba(255,255,255,0) 60%,rgba(255,255,255,0.18) 80%,rgba(255,255,255,0.5) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+}
+.nav-dropdown-item {
+  position: relative; display: block; padding: 9px 16px; border-radius: 10px;
+  font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.72);
+  text-decoration: none; white-space: nowrap; overflow: hidden;
+  opacity: 0; transform: translate3d(-6px,0,0);
+  transition: background-color 180ms ease, color 180ms ease, opacity 280ms ease, transform 320ms cubic-bezier(0.22,1,0.36,1);
+  will-change: transform, opacity;
+}
+.nav-dropdown.is-open .nav-dropdown-item { opacity: 1; transform: translate3d(0,0,0); }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(1) { transition-delay: 40ms; }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(2) { transition-delay: 90ms; }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(3) { transition-delay: 140ms; }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(4) { transition-delay: 190ms; }
+.nav-dropdown-item > span.lbl { display: inline-block; transform: translateX(0); transition: transform 220ms cubic-bezier(0.22,1,0.36,1); will-change: transform; }
+.nav-dropdown-item:hover > span.lbl { transform: translateX(6px); }
+.nav-dropdown-item::after {
+  content: ""; position: absolute; left: 8px; top: 50%;
+  transform: translate3d(0,-50%,0) scaleY(0.2); width: 2px; height: 14px;
+  border-radius: 2px; background: #D4A853; opacity: 0;
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22,1,0.36,1);
+  box-shadow: 0 0 8px rgba(212,168,83,0.55);
+}
+.nav-dropdown-item:hover { color: #fff; background-color: rgba(255,255,255,0.06); }
+.nav-dropdown-item:hover::after { opacity: 1; transform: translate3d(0,-50%,0) scaleY(1); }
+
+/* ===================== Mobile nav ===================== */
+.nav-desktop-items { display: flex; align-items: center; gap: 20px; }
+.mob-hamburger { display: none; flex-direction: column; justify-content: center; align-items: center; gap: 5.5px; width: 32px; height: 32px; background: none; border: none; padding: 0; cursor: pointer; color: rgba(255,255,255,0.85); z-index: 60; flex-shrink: 0; }
+.mob-bar { width: 18px; height: 1.4px; background: currentColor; border-radius: 2px; transition: transform 320ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease, width 220ms ease; transform-origin: center; }
+.mob-hamburger.is-open .mob-bar:nth-child(1) { transform: translateY(6.9px) rotate(45deg); }
+.mob-hamburger.is-open .mob-bar:nth-child(2) { opacity: 0; width: 0; }
+.mob-hamburger.is-open .mob-bar:nth-child(3) { transform: translateY(-6.9px) rotate(-45deg); }
+@media (max-width: 767px) { .nav-desktop-items { display: none !important; } .mob-hamburger { display: flex; } }
+.mob-menu { position: fixed; inset: 0; z-index: 48; background: rgba(4,4,6,0.97); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); display: flex; flex-direction: column; padding: 110px 36px 52px; opacity: 0; pointer-events: none; transform: translateY(-8px); transition: opacity 320ms cubic-bezier(0.4,0,0.2,1), transform 380ms cubic-bezier(0.22,1,0.36,1); overflow-y: auto; }
+.mob-menu.is-open { opacity: 1; pointer-events: auto; transform: none; }
+.mob-menu-group { margin-bottom: 32px; }
+.mob-menu-group-label { font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #D4A853; margin: 0 0 14px; opacity: 0.85; }
+.mob-menu-link { display: block; font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(26px,6.5vw,40px); color: rgba(245,239,231,0.75); text-decoration: none; line-height: 1.25; margin-bottom: 2px; opacity: 0; transform: translateX(-14px); transition: opacity 380ms cubic-bezier(0.22,1,0.36,1), transform 420ms cubic-bezier(0.22,1,0.36,1), color 200ms ease; }
+.mob-menu.is-open .mob-menu-link { opacity: 1; transform: none; }
+.mob-menu-link:hover { color: #F5EFE7; }
+.mob-menu-rule { width: 100%; height: 1px; border: 0; background: rgba(245,239,231,0.07); margin: 4px 0 32px; }
+.mob-menu-bottom { margin-top: auto; padding-top: 28px; display: flex; align-items: center; gap: 16px; opacity: 0; transform: translateY(8px); transition: opacity 400ms ease, transform 400ms cubic-bezier(0.22,1,0.36,1); }
+.mob-menu.is-open .mob-menu-bottom { opacity: 1; transform: none; }
+
+/* ===================== Reveal ===================== */
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.95s cubic-bezier(0.22,1,0.36,1), transform 0.95s cubic-bezier(0.22,1,0.36,1); }
+.reveal.in-view { opacity: 1; transform: none; }
+
+/* ===================== Dark marquee ===================== */
+.marquee-dark { position: relative; width: 100%; overflow: hidden; background: #07080c; padding: 18px 0; box-shadow: inset 0 1px 0 rgba(212,168,83,0.18),inset 0 -1px 0 rgba(212,168,83,0.12); user-select: none; }
+.marquee-dark-track { display: flex; width: max-content; animation: marquee-dark-scroll 48s linear infinite; will-change: transform; }
+@keyframes marquee-dark-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee-dark-group { display: flex; flex-shrink: 0; }
+.marquee-dark-item { display: inline-flex; align-items: center; font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(18px,2vw,28px); letter-spacing: 0.02em; color: #D4A853; white-space: nowrap; opacity: 0.88; }
+.marquee-dark-dot { margin: 0 0.9em; font-size: 0.5em; opacity: 0.55; transform: translateY(-0.1em); font-style: normal; }
+@media (prefers-reduced-motion: reduce) { .marquee-dark-track { animation: none !important; } }
+
+/* ===================== Footer ===================== */
+.site-footer { position: relative; z-index: 10; background: radial-gradient(120% 80% at 50% 120%,rgba(212,168,83,0.08) 0%,rgba(212,168,83,0) 55%),linear-gradient(180deg,#0a0b0f 0%,#050506 100%); padding: clamp(72px,11vh,130px) 24px clamp(44px,6vh,70px); text-align: center; overflow: hidden; }
+.footer-rule { width: min(560px,70%); height: 1px; margin: 0 auto clamp(40px,6vh,64px); border: 0; background: linear-gradient(90deg,rgba(245,239,231,0) 0%,rgba(245,239,231,0.22) 50%,rgba(245,239,231,0) 100%); }
+.footer-contact { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: clamp(12.5px,1vw,15px); letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245,239,231,0.62); margin: 0 0 clamp(26px,5vh,54px); text-wrap: balance; }
+.footer-email { color: #D4A853; text-decoration: none; border-bottom: 1px solid rgba(212,168,83,0.35); padding-bottom: 1px; transition: color 0.22s ease, border-color 0.22s ease; white-space: nowrap; }
+.footer-email:hover { color: #F5EFE7; border-color: rgba(245,239,231,0.6); }
+.footer-wordmark { font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(84px,19vw,300px); line-height: 0.86; letter-spacing: -0.02em; color: #F5EFE7; margin: 0; user-select: none; text-shadow: 0 2px 40px rgba(0,0,0,0.4); }
+.footer-ig { display: inline-flex; margin-top: clamp(28px,4vh,48px); color: rgba(245,239,231,0.55); transition: color 0.22s ease, transform 0.22s ease; }
+.footer-ig:hover { color: #fff; transform: translateY(-2px); }
+.footer-fine { font-family: 'Barlow', sans-serif; font-weight: 400; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(245,239,231,0.32); margin: clamp(34px,5vh,52px) 0 0; }
+
+/* ===================== Tier overrides ===================== */
+.tier-low .liquid-glass { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(18,18,18,0.90) !important; }
+.tier-low .liquid-glass-strong { backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; }
+.tier-low .nav-dropdown.is-open .nav-dropdown-card { backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; }
+.tier-low .rgb-hover::after { display: none !important; }
+.tier-low .rgb-hover:hover { box-shadow: 0 0 14px 2px rgba(255,255,255,0.10); }
+.tier-low .reveal { transition-duration: 0.4s !important; }
+.tier-mid .liquid-glass { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.tier-mid .liquid-glass-strong { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+.tier-mid .rgb-hover:hover::after { animation: rgb-spin 5s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .reveal { transition: none !important; opacity: 1 !important; transform: none !important; } .rgb-hover::after { display: none !important; } }
+
+/* ===================== Hero ===================== */
+.sec-hero {
+  position: relative;
+  min-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(140px,22vh,240px) 24px clamp(80px,12vh,140px);
+  overflow: hidden;
+  background: #000;
+  text-align: center;
+}
+.sec-hero-orb {
+  position: absolute;
+  top: -15%; left: 50%;
+  transform: translateX(-50%);
+  width: min(960px,160vw);
+  height: min(720px,130vw);
+  background: radial-gradient(ellipse at 50% 28%, rgba(212,168,83,0.17) 0%, rgba(212,168,83,0.07) 38%, transparent 65%);
+  animation: orb-breathe 7s ease-in-out infinite;
+  pointer-events: none; z-index: 0;
+}
+@keyframes orb-breathe {
+  0%,100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+  50%     { opacity: 1;   transform: translateX(-50%) scale(1.1); }
+}
+.sec-hero-particles {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden;
+}
+.sec-hero-particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: #D4A853;
+  animation: particle-drift var(--pdur, 8s) ease-in-out var(--pdel, 0s) infinite;
+  opacity: 0;
+}
+@keyframes particle-drift {
+  0%   { opacity: 0;    transform: translateY(0) translateX(0) scale(0.5); }
+  15%  { opacity: var(--pop, 0.5); }
+  50%  { opacity: var(--pop, 0.5); transform: translateY(calc(var(--py) * -1px)) translateX(calc(var(--px) * 1px)) scale(1); }
+  85%  { opacity: var(--pop, 0.5); }
+  100% { opacity: 0;    transform: translateY(calc(var(--py) * -2px)) translateX(calc(var(--px) * 0.5px)) scale(0.5); }
+}
+.sec-hero-eyebrow {
+  font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 11px;
+  letter-spacing: 0.34em; text-transform: uppercase; color: #D4A853;
+  margin: 0 0 20px; position: relative; z-index: 2;
+  opacity: 0; animation: hero-fade-up 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s forwards;
+}
+.sec-hero-eyebrow::before { content: "\2726"; margin-right: 0.9em; font-size: 0.78em; }
+.sec-hero-eyebrow::after  { content: "\2726"; margin-left:  0.9em; font-size: 0.78em; }
+.sec-hero-title {
+  font-family: 'Instrument Serif', serif; font-style: italic;
+  font-size: clamp(72px, 14vw, 210px);
+  line-height: 0.9; letter-spacing: -0.02em; color: #F5EFE7;
+  margin: 0; position: relative; z-index: 2;
+  opacity: 0; animation: hero-fade-up 1.1s cubic-bezier(0.22,1,0.36,1) 0.45s forwards;
+}
+.sec-hero-sub {
+  font-family: 'Barlow', sans-serif; font-weight: 300;
+  font-size: clamp(13px,1.05vw,16px); color: rgba(245,239,231,0.44);
+  margin: 24px 0 0; letter-spacing: 0.16em; text-transform: uppercase;
+  position: relative; z-index: 2;
+  opacity: 0; animation: hero-fade-up 1s cubic-bezier(0.22,1,0.36,1) 0.7s forwards;
+}
+.sec-hero-line {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: min(600px,80%); height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212,168,83,0.4), transparent);
+}
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ===================== Members section ===================== */
+.sec-members {
+  position: relative; z-index: 10;
+  background: radial-gradient(110% 50% at 50% 0%, rgba(212,168,83,0.07) 0%, rgba(212,168,83,0) 55%),
+              linear-gradient(180deg, #050507 0%, #0a0b0f 30%, #0a0b0f 100%);
+  padding: clamp(72px,11vh,130px) 24px clamp(90px,14vh,160px);
+}
+.sec-members::before {
+  content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: min(700px,90%); height: 1px;
+  background: linear-gradient(90deg, rgba(212,168,83,0) 0%, rgba(212,168,83,0.35) 50%, rgba(212,168,83,0) 100%);
+}
+.sec-members-inner { max-width: 1100px; margin: 0 auto; }
+
+.sec-tier-label {
+  font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 10.5px;
+  letter-spacing: 0.3em; text-transform: uppercase; color: #D4A853;
+  text-align: center; margin: 0 0 clamp(32px,5vh,48px); opacity: 0.85;
+}
+.sec-tier-label::before { content: "\2726"; margin-right: 0.9em; font-size: 0.78em; }
+.sec-tier-label::after  { content: "\2726"; margin-left:  0.9em; font-size: 0.78em; }
+
+.sec-group { margin-bottom: clamp(52px,8vh,96px); }
+.sec-row { display: flex; gap: clamp(16px,2.5vw,32px); justify-content: center; flex-wrap: wrap; }
+
+.sec-usg-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: clamp(14px,1.8vw,22px);
+}
+@media (max-width: 960px) { .sec-usg-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 480px) { .sec-usg-grid { grid-template-columns: 1fr; } }
+
+/* ===================== Member cards ===================== */
+.member-card {
+  position: relative; display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: clamp(28px,4vw,44px) clamp(18px,2.5vw,30px);
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.046) 0%, rgba(255,255,255,0.014) 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.09), 0 20px 56px rgba(0,0,0,0.45);
+  transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), box-shadow 0.38s ease;
+  cursor: default; overflow: hidden;
+}
+.member-card::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px;
+  background: linear-gradient(160deg,rgba(255,255,255,0.42) 0%,rgba(255,255,255,0.1) 35%,rgba(255,255,255,0) 60%,rgba(255,255,255,0.12) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+}
+.member-card:hover {
+  transform: translateY(-6px);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.13), 0 30px 80px rgba(0,0,0,0.55), 0 0 48px rgba(212,168,83,0.09);
+}
+.member-card--top {
+  min-width: clamp(210px,24vw,310px);
+  max-width: 340px; flex: 1;
+}
+.member-card--top::before {
+  background: linear-gradient(160deg,rgba(212,168,83,0.46) 0%,rgba(212,168,83,0.15) 30%,rgba(212,168,83,0) 55%,rgba(212,168,83,0.18) 100%);
+}
+.member-card--senior {
+  min-width: clamp(200px,22vw,290px);
+  max-width: 320px;
+}
+.member-card--usg { width: 100%; }
+
+.member-photo {
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-bottom: clamp(14px,2vh,20px);
+  transition: box-shadow 0.35s ease;
+}
+.member-card:hover .member-photo {
+  box-shadow: 0 0 0 3px rgba(212,168,83,0.3), 0 0 22px rgba(212,168,83,0.18);
+}
+
+.member-role {
+  font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 9.5px;
+  letter-spacing: 0.25em; text-transform: uppercase; color: #D4A853;
+  margin: 0 0 9px; opacity: 0.9; line-height: 1.6;
+}
+.member-name {
+  font-family: 'Instrument Serif', serif; font-style: italic;
+  color: #F5EFE7; margin: 0; line-height: 1.15;
+}
+.member-name--top    { font-size: clamp(19px,2vw,26px); }
+.member-name--senior { font-size: clamp(17px,1.8vw,23px); }
+.member-name--usg    { font-size: clamp(14px,1.2vw,17px); }
+
+/* Slide-in from bottom for cards */
+.member-card.reveal { transform: translateY(32px); }
+.member-card.reveal.in-view { transform: none; }
+.member-card.reveal.in-view:hover { transform: translateY(-6px); }
+</style>
+</head>
+<body class="bg-black text-white">
+<div id="root"></div>
+
+<script>
+const DEVICE_TIER = (function detectTier() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'low';
+  const cores = navigator.hardwareConcurrency || 2;
+  const mem   = navigator.deviceMemory;
+  const ua    = navigator.userAgent;
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(ua);
+  const conn = navigator.connection;
+  if (conn && (conn.saveData || conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g')) return 'low';
+  if (isMobile) return cores >= 6 ? 'mid' : 'low';
+  if (mem !== undefined) {
+    if (mem >= 8 && cores >= 8) return 'high';
+    if (mem >= 4 || cores >= 6) return 'mid';
+    return 'low';
+  }
+  if (cores >= 8) return 'high';
+  if (cores >= 4) return 'mid';
+  return 'low';
+})();
+document.body.classList.add('tier-' + DEVICE_TIER);
+
+const html = htm.bind(React.createElement);
+const { useState, useEffect, useLayoutEffect, useRef, useCallback } = React;
+
+const NAV_ITEMS = [
+  { label: 'ABOUT',              items: ['THE SECRETARIAT', 'MUN @ PPCHS'] },
+  { label: 'DELEGATE RESOURCES', items: ['CONFERENCE SCHEDULE', 'DELEGATE HANDBOOK', 'POSITION PAPERS'] },
+  { label: 'COMMITTEES',         items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'SPECIALIZED', 'CRISIS'] },
+];
+const ITEM_HREFS = {
+  'THE SECRETARIAT':     '/secretariat',
+  'CONFERENCE SCHEDULE': '/#schedule',
+  'ALL COMMITTEES':      '/committees',
+  'GENERAL ASSEMBLY':    '/committees#general-assembly',
+  'SPECIALIZED':         '/committees#specialized',
+  'CRISIS':              '/committees#crisis',
+  'REGISTRATION':        'https://docs.google.com/forms/d/e/1FAIpQLSdSQx3ZYI0sBthYWoXN9pQKQ6hqGzLzRkRKu4CM7QMQka8F3Q/viewform?usp=publish-editor',
+};
+
+const CO_SGS = [
+  { name: 'Mikayla Hines', role: 'Co-Secretary General' },
+  { name: 'Nusaybah Arif', role: 'Co-Secretary General' },
+];
+const DIRECTOR_GENERAL = [
+  { name: 'Alejandro Agudelo', role: 'Director General' },
+];
+const USGS = [
+  { name: 'Brooke Wooden',     role: 'Under-Secretary General of Delegate Affairs' },
+  { name: 'Juan Mendoza',      role: 'Under-Secretary General of Logistics' },
+  { name: 'Yasmin Dominguez',  role: 'Under-Secretary General of Finance' },
+  { name: 'Sophia Degand',     role: 'Under-Secretary General of Staff' },
+  { name: 'Manuel Roz Cuadra', role: 'Co-Under-Secretary General of Operations' },
+  { name: 'Dev Gupta',         role: 'Co-Under-Secretary General of Operations' },
+  { name: "Daniela D'Souza",   role: 'Under-Secretary General of Media & Content' },
+  { name: 'Tushara Varanasi',  role: 'Under-Secretary General of Marketing' },
+];
+
+// Floating particles config (positions & timing baked in so no JS animation loop needed)
+const PARTICLES = [
+  { left:'12%', top:'22%', pdur:'9s',  pdel:'0s',   py:60, px:18,  pop:0.55 },
+  { left:'82%', top:'18%', pdur:'11s', pdel:'1.5s', py:80, px:-22, pop:0.45 },
+  { left:'28%', top:'68%', pdur:'8s',  pdel:'3s',   py:50, px:14,  pop:0.5  },
+  { left:'67%', top:'55%', pdur:'13s', pdel:'0.8s', py:70, px:-16, pop:0.4  },
+  { left:'44%', top:'30%', pdur:'10s', pdel:'2.2s', py:55, px:20,  pop:0.6  },
+  { left:'90%', top:'72%', pdur:'7s',  pdel:'4s',   py:45, px:-10, pop:0.35 },
+  { left:'6%',  top:'58%', pdur:'12s', pdel:'1s',   py:65, px:12,  pop:0.5  },
+  { left:'55%', top:'82%', pdur:'9s',  pdel:'3.5s', py:40, px:-18, pop:0.4  },
+];
+
+function PhotoPlaceholder({ name, size }) {
+  const initials = name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+  return html`
+    <div className="member-photo" style=${{
+      width: size, height: size,
+      background: 'linear-gradient(135deg, rgba(212,168,83,0.18) 0%, rgba(212,168,83,0.06) 100%)',
+      border: '1.5px solid rgba(212,168,83,0.26)',
+    }}>
+      <span style=${{
+        fontFamily: "'Instrument Serif', serif", fontStyle: 'italic',
+        fontSize: Math.round(size * 0.3) + 'px',
+        color: '#D4A853', opacity: 0.78, userSelect: 'none',
+        letterSpacing: '0.02em',
+      }}>${initials}</span>
+    </div>
+  `;
+}
+
+function MemberCard({ member, variant, photoSize, delay }) {
+  return html`
+    <div className=${"member-card member-card--" + variant + " reveal"} style=${{ transitionDelay: delay + 's' }}>
+      <${PhotoPlaceholder} name=${member.name} size=${photoSize} />
+      <p className="member-role">${member.role}</p>
+      <p className=${"member-name member-name--" + variant}>${member.name}</p>
+    </div>
+  `;
+}
+
+function NavBar() {
+  const [openIdx,   setOpenIdx]  = useState(null);
+  const [positions, setPositions] = useState([]);
+  const [menuOpen,  setMenuOpen]  = useState(false);
+  const navRef      = useRef(null);
+  const triggerRefs = useRef([]);
+  const closeTimer  = useRef(null);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
+  const measurePositions = useCallback(() => {
+    if (!navRef.current) return;
+    const navRect = navRef.current.getBoundingClientRect();
+    const xs = NAV_ITEMS.map((_, i) => {
+      const el = triggerRefs.current[i]; if (!el) return 0;
+      const r = el.getBoundingClientRect();
+      return r.left + r.width / 2 - navRect.left;
+    });
+    setPositions(xs);
+  }, []);
+
+  useLayoutEffect(() => {
+    measurePositions();
+    window.addEventListener('resize', measurePositions);
+    const f = setTimeout(measurePositions, 600);
+    return () => { window.removeEventListener('resize', measurePositions); clearTimeout(f); };
+  }, [measurePositions]);
+
+  const openMenu      = (idx) => { clearTimeout(closeTimer.current); setOpenIdx(idx); };
+  const scheduleClose = ()    => { closeTimer.current = setTimeout(() => setOpenIdx(null), 180); };
+  const cancelClose   = ()    => clearTimeout(closeTimer.current);
+
+  let linkIdx = 0;
+  const mobGroups = NAV_ITEMS.map(group => ({
+    label: group.label,
+    links: group.items.map(sub => ({ sub, delay: (++linkIdx) * 45 + 40 })),
+  }));
+  const mobBottomDelay = linkIdx * 45 + 100;
+
+  return html`
+    <${React.Fragment}>
+      <nav ref=${navRef} className="fixed top-5 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap">
+        <div className="liquid-glass flex items-center gap-3 rounded px-4 py-2">
+          <${LogoMark} />
+          <div className="nav-desktop-items">
+            ${NAV_ITEMS.map((item, idx) => html`
+              <a key=${item.label} href="#"
+                ref=${el => { triggerRefs.current[idx] = el; }}
+                onMouseEnter=${() => openMenu(idx)}
+                onMouseLeave=${scheduleClose}
+                className=${"nav-trigger text-sm font-body font-light transition-colors duration-200 " +
+                  (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')}
+              >${item.label}<span className="caret" aria-hidden="true"></span></a>
+            `)}
+            <a href=${ITEM_HREFS['REGISTRATION']} target="_blank" rel="noopener noreferrer"
+              className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-4 py-1.5 transition-all duration-200 hover:scale-[1.04] active:scale-[0.97]"
+            >REGISTRATION</a>
+            <a href="https://www.instagram.com/jagmun_ppchs/" target="_blank" rel="noopener noreferrer"
+              aria-label="Instagram" className="text-white/70 hover:text-white transition-colors duration-200 flex items-center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </a>
+          </div>
+          <button type="button" className=${"mob-hamburger" + (menuOpen ? " is-open" : "")}
+            onClick=${() => setMenuOpen(m => !m)}
+            aria-label=${menuOpen ? "Close menu" : "Open menu"} aria-expanded=${menuOpen}>
+            <span className="mob-bar"></span><span className="mob-bar"></span><span className="mob-bar"></span>
+          </button>
+        </div>
+
+        ${NAV_ITEMS.map((item, idx) => html`
+          <div key=${item.label} className=${"nav-dropdown" + (openIdx === idx ? " is-open" : "")}
+            style=${{ left: positions[idx] || 0 }}
+            onMouseEnter=${() => { cancelClose(); openMenu(idx); }}
+            onMouseLeave=${scheduleClose}
+            aria-hidden=${openIdx !== idx}>
+            <div className="nav-dropdown-card">
+              ${item.items.map(sub => {
+                const href = ITEM_HREFS[sub] || '#';
+                return html`
+                  <a key=${sub} href=${href} className="nav-dropdown-item"
+                    target=${href.startsWith('http') ? '_blank' : undefined}
+                    rel=${href.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                    <span className="lbl">${sub}</span>
+                  </a>
+                `;
+              })}
+            </div>
+          </div>
+        `)}
+      </nav>
+
+      <div className=${"mob-menu" + (menuOpen ? " is-open" : "")} aria-hidden=${!menuOpen}>
+        ${mobGroups.map(group => html`
+          <div key=${group.label} className="mob-menu-group">
+            <p className="mob-menu-group-label">${group.label}</p>
+            ${group.links.map(({ sub, delay }) => {
+              const href = ITEM_HREFS[sub] || '#';
+              return html`
+                <a key=${sub} href=${href} className="mob-menu-link"
+                  style=${{ transitionDelay: menuOpen ? delay + 'ms' : '0ms' }}
+                  target=${href.startsWith('http') ? '_blank' : undefined}
+                  rel=${href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  onClick=${() => setMenuOpen(false)}
+                >${sub}</a>
+              `;
+            })}
+          </div>
+          <hr className="mob-menu-rule" />
+        `)}
+        <div className="mob-menu-bottom" style=${{ transitionDelay: menuOpen ? mobBottomDelay + 'ms' : '0ms' }}>
+          <a href=${ITEM_HREFS['REGISTRATION']} target="_blank" rel="noopener noreferrer"
+            className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-5 py-2.5 transition-all duration-200 active:scale-[0.97]">REGISTRATION</a>
+          <a href="https://www.instagram.com/jagmun_ppchs/" target="_blank" rel="noopener noreferrer"
+            aria-label="Instagram" className="text-white/55 hover:text-white transition-colors duration-200 flex items-center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </${React.Fragment}>
+  `;
+}
+
+function LogoMark() {
+  return html`
+    <a href="/" style=${{ display:'block', flexShrink:0, lineHeight:0 }}>
+      <img src="../assets/jagmun-logo.png" alt="JagMUN" width="52" height="52" draggable="false"
+        style=${{ width:52, height:52, objectFit:'contain', display:'block', userSelect:'none',
+          marginLeft:-4, marginRight:-4, filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
+    </a>
+  `;
+}
+
+function DarkMarquee() {
+  const PHRASES = ['The Secretariat', 'JAGMUN III', 'Class of 2026', 'Jaguar Nation'];
+  const units = [];
+  for (let r = 0; r < 6; r++) PHRASES.forEach(p => units.push(p));
+  const Group = ({ hidden }) => html`
+    <div className="marquee-dark-group" aria-hidden=${hidden ? 'true' : undefined}>
+      ${units.map((p, i) => html`
+        <span className="marquee-dark-item" key=${i}>
+          ${p}<span className="marquee-dark-dot" aria-hidden="true">${'✦'}</span>
+        </span>
+      `)}
+    </div>
+  `;
+  return html`
+    <div className="marquee-dark" role="presentation">
+      <div className="marquee-dark-track"><${Group} /><${Group} hidden=${true} /></div>
+    </div>
+  `;
+}
+
+function SiteFooter() {
+  return html`
+    <footer className="site-footer">
+      <hr className="footer-rule reveal" />
+      <p className="footer-contact reveal" style=${{ transitionDelay:'0.06s' }}>
+        For any questions, please reach out to${' '}
+        <a className="footer-email" href="mailto:jagmun.ppchs@gmail.com">jagmun.ppchs@gmail.com</a>
+      </p>
+      <h2 className="footer-wordmark reveal" style=${{ transitionDelay:'0.12s' }}>JAGMUN III</h2>
+      <a className="footer-ig reveal" style=${{ transitionDelay:'0.18s' }}
+        href="https://www.instagram.com/jagmun_ppchs/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+      </a>
+      <p className="footer-fine reveal" style=${{ transitionDelay:'0.22s' }}>
+        JAGMUN III · September 19–20, 2026
+      </p>
+    </footer>
+  `;
+}
+
+function App() {
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll('.reveal'));
+    if (!els.length) return;
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); } }),
+        { threshold: 0.1, rootMargin: '0px 0px -6% 0px' }
+      );
+      els.forEach(el => io.observe(el));
+      return () => io.disconnect();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (DEVICE_TIER === 'low') return;
+    const L = window.Lenis; if (!L) return;
+    const lenis = new L({ duration: DEVICE_TIER === 'high' ? 1.15 : 1.0, smoothWheel: true, wheelMultiplier: 0.9 });
+    let id; const raf = t => { lenis.raf(t); id = requestAnimationFrame(raf); };
+    id = requestAnimationFrame(raf);
+    return () => { cancelAnimationFrame(id); lenis.destroy(); };
+  }, []);
+
+  return html`
+    <div className="bg-black text-white overflow-x-hidden">
+      <${NavBar} />
+
+      <!-- Hero -->
+      <div className="sec-hero">
+        <div className="sec-hero-orb" aria-hidden="true"></div>
+
+        ${DEVICE_TIER !== 'low' && html`
+          <div className="sec-hero-particles" aria-hidden="true">
+            ${PARTICLES.map((p, i) => html`
+              <div key=${i} className="sec-hero-particle" style=${{
+                left: p.left, top: p.top,
+                '--pdur': p.pdur, '--pdel': p.pdel,
+                '--py': p.py, '--px': p.px, '--pop': p.pop,
+              }}></div>
+            `)}
+          </div>
+        `}
+
+        <p className="sec-hero-eyebrow">JAGMUN III · 2026</p>
+        <h1 className="sec-hero-title">The Secretariat</h1>
+        <p className="sec-hero-sub">September 19–20, 2026</p>
+        <div className="sec-hero-line" aria-hidden="true"></div>
+      </div>
+
+      <!-- Marquee -->
+      <${DarkMarquee} />
+
+      <!-- Members -->
+      <section className="sec-members">
+        <div className="sec-members-inner">
+
+          <p className="sec-tier-label reveal">Secretary General</p>
+          <div className="sec-group">
+            <div className="sec-row">
+              ${CO_SGS.map((m, i) => html`
+                <${MemberCard} key=${m.name} member=${m} variant="top" photoSize=${108} delay=${0.1 + i * 0.1} />
+              `)}
+            </div>
+          </div>
+
+          <p className="sec-tier-label reveal" style=${{ transitionDelay:'0.08s' }}>Director General</p>
+          <div className="sec-group">
+            <div className="sec-row">
+              <${MemberCard} member=${DIRECTOR_GENERAL[0]} variant="senior" photoSize=${94} delay=${0.12} />
+            </div>
+          </div>
+
+          <p className="sec-tier-label reveal" style=${{ transitionDelay:'0.08s' }}>Under-Secretaries General</p>
+          <div className="sec-usg-grid">
+            ${USGS.map((m, i) => html`
+              <${MemberCard} key=${m.name} member=${m} variant="usg" photoSize=${76} delay=${0.06 + i * 0.055} />
+            `)}
+          </div>
+
+        </div>
+      </section>
+
+      <${SiteFooter} />
+    </div>
+  `;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App} />`);
+</script>
+</body>
+</html>
