@@ -382,9 +382,9 @@ const html = htm.bind(React.createElement);
 const { useState, useEffect, useLayoutEffect, useRef, useCallback } = React;
 
 const NAV_ITEMS = [
-  { label: 'ABOUT',              items: ['THE SECRETARIAT', 'MUN @ PPCHS'] },
-  { label: 'DELEGATE RESOURCES', items: ['CONFERENCE SCHEDULE', 'DELEGATE HANDBOOK', 'POSITION PAPERS'] },
-  { label: 'COMMITTEES',         items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'CRISIS'] },
+  { label: 'SECRETARIAT', href: '/secretariat' },
+  { label: 'SCHEDULE',    href: '/#schedule' },
+  { label: 'COMMITTEES',  items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'CRISIS'] },
 ];
 const ITEM_HREFS = {
   'THE SECRETARIAT':     '/secretariat',
@@ -489,12 +489,12 @@ function NavBar() {
   const scheduleClose = ()    => { closeTimer.current = setTimeout(() => setOpenIdx(null), 180); };
   const cancelClose   = ()    => clearTimeout(closeTimer.current);
 
-  let linkIdx = 0;
-  const mobGroups = NAV_ITEMS.map(group => ({
-    label: group.label,
-    links: group.items.map(sub => ({ sub, delay: (++linkIdx) * 45 + 40 })),
-  }));
-  const mobBottomDelay = linkIdx * 45 + 100;
+  let _d = 0;
+  const mobItems = NAV_ITEMS.map(item => item.href
+    ? { ...item, delay: (++_d) * 45 + 40 }
+    : { ...item, links: item.items.map(sub => ({ sub, delay: (++_d) * 45 + 40 })) }
+  );
+  const mobBottomDelay = _d * 45 + 100;
 
   return html`
     <${React.Fragment}>
@@ -502,15 +502,18 @@ function NavBar() {
         <div className="liquid-glass flex items-center gap-3 rounded px-4 py-2">
           <${LogoMark} />
           <div className="nav-desktop-items">
-            ${NAV_ITEMS.map((item, idx) => html`
-              <a key=${item.label} href="#"
-                ref=${el => { triggerRefs.current[idx] = el; }}
-                onMouseEnter=${() => openMenu(idx)}
-                onMouseLeave=${scheduleClose}
-                className=${"nav-trigger text-sm font-body font-light transition-colors duration-200 " +
-                  (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')}
-              >${item.label}<span className="caret" aria-hidden="true"></span></a>
-            `)}
+            ${NAV_ITEMS.map((item, idx) => item.href
+              ? html`<a key=${item.label} href=${item.href}
+                  className="text-sm font-body font-light text-white/70 hover:text-white transition-colors duration-200"
+                >${item.label}</a>`
+              : html`<a key=${item.label} href="#"
+                  ref=${el => { triggerRefs.current[idx] = el; }}
+                  onMouseEnter=${() => openMenu(idx)}
+                  onMouseLeave=${scheduleClose}
+                  className=${"nav-trigger text-sm font-body font-light transition-colors duration-200 " +
+                    (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')}
+                >${item.label}<span className="caret" aria-hidden="true"></span></a>
+            )}
             <a href=${ITEM_HREFS['REGISTRATION']} target="_blank" rel="noopener noreferrer"
               className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-4 py-1.5 transition-all duration-200 hover:scale-[1.04] active:scale-[0.97]"
             >REGISTRATION</a>
@@ -530,7 +533,7 @@ function NavBar() {
           </button>
         </div>
 
-        ${NAV_ITEMS.map((item, idx) => html`
+        ${NAV_ITEMS.map((item, idx) => !item.items ? null : html`
           <div key=${item.label} className=${"nav-dropdown" + (openIdx === idx ? " is-open" : "")}
             style=${{ left: positions[idx] || 0 }}
             onMouseEnter=${() => { cancelClose(); openMenu(idx); }}
@@ -553,23 +556,27 @@ function NavBar() {
       </nav>
 
       <div className=${"mob-menu" + (menuOpen ? " is-open" : "")} aria-hidden=${!menuOpen}>
-        ${mobGroups.map(group => html`
-          <div key=${group.label} className="mob-menu-group">
-            <p className="mob-menu-group-label">${group.label}</p>
-            ${group.links.map(({ sub, delay }) => {
-              const href = ITEM_HREFS[sub] || '#';
-              return html`
-                <a key=${sub} href=${href} className="mob-menu-link"
-                  style=${{ transitionDelay: menuOpen ? delay + 'ms' : '0ms' }}
-                  target=${href.startsWith('http') ? '_blank' : undefined}
-                  rel=${href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  onClick=${() => setMenuOpen(false)}
-                >${sub}</a>
-              `;
-            })}
-          </div>
-          <hr className="mob-menu-rule" />
-        `)}
+        ${mobItems.map(item => item.href
+          ? html`<a key=${item.label} href=${item.href} className="mob-menu-link"
+              style=${{ transitionDelay: menuOpen ? item.delay + 'ms' : '0ms' }}
+              onClick=${() => setMenuOpen(false)}>${item.label}</a>
+            <hr className="mob-menu-rule" />`
+          : html`
+            <div key=${item.label} className="mob-menu-group">
+              <p className="mob-menu-group-label">${item.label}</p>
+              ${item.links.map(({ sub, delay }) => {
+                const href = ITEM_HREFS[sub] || '#';
+                return html`
+                  <a key=${sub} href=${href} className="mob-menu-link"
+                    style=${{ transitionDelay: menuOpen ? delay + 'ms' : '0ms' }}
+                    target=${href.startsWith('http') ? '_blank' : undefined}
+                    rel=${href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    onClick=${() => setMenuOpen(false)}>${sub}</a>
+                `;
+              })}
+            </div>
+            <hr className="mob-menu-rule" />`
+        )}
         <div className="mob-menu-bottom" style=${{ transitionDelay: menuOpen ? mobBottomDelay + 'ms' : '0ms' }}>
           <a href=${ITEM_HREFS['REGISTRATION']} target="_blank" rel="noopener noreferrer"
             className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-5 py-2.5 transition-all duration-200 active:scale-[0.97]">REGISTRATION</a>

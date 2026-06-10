@@ -1165,9 +1165,9 @@ const { useState, useEffect, useLayoutEffect, useRef, useCallback } = React;
 // 3. CONFIG
 // ============================================================
 const NAV_ITEMS = [
-  { label: 'ABOUT',              items: ['THE SECRETARIAT', 'MUN @ PPCHS'] },
-  { label: 'DELEGATE RESOURCES', items: ['CONFERENCE SCHEDULE', 'DELEGATE HANDBOOK', 'POSITION PAPERS'] },
-  { label: 'COMMITTEES',         items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'CRISIS'] },
+  { label: 'SECRETARIAT', href: '/secretariat' },
+  { label: 'SCHEDULE',    href: '#schedule' },
+  { label: 'COMMITTEES',  items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'CRISIS'] },
 ];
 const ITEM_HREFS = {
   'THE SECRETARIAT':     '/secretariat',
@@ -1355,13 +1355,12 @@ function NavBar() {
     }
   };
 
-  // Stagger delay for mobile menu links (flat index across all groups)
-  let linkIdx = 0;
-  const mobGroups = NAV_ITEMS.map((group) => ({
-    label: group.label,
-    links: group.items.map((sub) => ({ sub, delay: (++linkIdx) * 45 + 40 })),
-  }));
-  const mobBottomDelay = linkIdx * 45 + 100;
+  let _d = 0;
+  const mobItems = NAV_ITEMS.map(item => item.href
+    ? { ...item, delay: (++_d) * 45 + 40 }
+    : { ...item, links: item.items.map(sub => ({ sub, delay: (++_d) * 45 + 40 })) }
+  );
+  const mobBottomDelay = _d * 45 + 100;
 
   return html`
     <${React.Fragment}>
@@ -1371,20 +1370,24 @@ function NavBar() {
 
           <!-- Desktop items -->
           <div className="nav-desktop-items">
-            ${NAV_ITEMS.map((item, idx) => html`
-              <a
-                key=${item.label}
-                href="#"
-                ref=${(el) => { triggerRefs.current[idx] = el; }}
-                onMouseEnter=${() => openMenu(idx)}
-                onMouseLeave=${scheduleClose}
-                className=${"nav-trigger text-sm font-body font-light transition-colors duration-200 " +
-                  (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')}
-              >
-                ${item.label}
-                <span className="caret" aria-hidden="true"></span>
-              </a>
-            `)}
+            ${NAV_ITEMS.map((item, idx) => item.href
+              ? html`<a key=${item.label} href=${item.href}
+                  className="text-sm font-body font-light text-white/70 hover:text-white transition-colors duration-200"
+                  onClick=${item.href.startsWith('#') ? (e) => { e.preventDefault(); smoothScrollTo(item.href); } : undefined}
+                >${item.label}</a>`
+              : html`<a
+                  key=${item.label}
+                  href="#"
+                  ref=${(el) => { triggerRefs.current[idx] = el; }}
+                  onMouseEnter=${() => openMenu(idx)}
+                  onMouseLeave=${scheduleClose}
+                  className=${"nav-trigger text-sm font-body font-light transition-colors duration-200 " +
+                    (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')}
+                >
+                  ${item.label}
+                  <span className="caret" aria-hidden="true"></span>
+                </a>
+            )}
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSdSQx3ZYI0sBthYWoXN9pQKQ6hqGzLzRkRKu4CM7QMQka8F3Q/viewform?usp=publish-editor"
               target="_blank"
@@ -1421,7 +1424,7 @@ function NavBar() {
         </div>
 
         <!-- Desktop dropdowns -->
-        ${NAV_ITEMS.map((item, idx) => html`
+        ${NAV_ITEMS.map((item, idx) => !item.items ? null : html`
           <div
             key=${item.label}
             className=${"nav-dropdown" + (openIdx === idx ? " is-open" : "")}
@@ -1452,35 +1455,45 @@ function NavBar() {
       <!-- Mobile full-screen menu -->
       <div className=${"mob-menu" + (menuOpen ? " is-open" : "")} aria-hidden=${!menuOpen}>
 
-        ${mobGroups.map((group) => html`
-          <div key=${group.label} className="mob-menu-group">
-            <p className="mob-menu-group-label">${group.label}</p>
-            ${group.links.map(({ sub, delay }) => {
-              const href = ITEM_HREFS[sub] || '#';
-              const onClick = (e) => {
+        ${mobItems.map(item => item.href
+          ? html`<a key=${item.label} href=${item.href} className="mob-menu-link"
+              style=${{ transitionDelay: menuOpen ? item.delay + 'ms' : '0ms' }}
+              onClick=${(e) => {
                 e.preventDefault();
                 setMenuOpen(false);
-                if (href.startsWith('#')) {
-                  setTimeout(() => smoothScrollTo(href), 340);
-                } else if (href.startsWith('http')) {
-                  window.open(href, '_blank', 'noopener,noreferrer');
+                if (item.href.startsWith('#')) {
+                  setTimeout(() => smoothScrollTo(item.href), 340);
                 } else {
-                  setTimeout(() => { window.location.href = href; }, 340);
+                  setTimeout(() => { window.location.href = item.href; }, 340);
                 }
-              };
-              return html`
-                <a
-                  key=${sub}
-                  href=${href}
-                  onClick=${onClick}
-                  className="mob-menu-link"
-                  style=${{ transitionDelay: menuOpen ? delay + 'ms' : '0ms' }}
-                >${sub}</a>
-              `;
-            })}
-          </div>
-          <hr className="mob-menu-rule" />
-        `)}
+              }}
+            >${item.label}</a>
+            <hr className="mob-menu-rule" />`
+          : html`
+            <div key=${item.label} className="mob-menu-group">
+              <p className="mob-menu-group-label">${item.label}</p>
+              ${item.links.map(({ sub, delay }) => {
+                const href = ITEM_HREFS[sub] || '#';
+                const onClick = (e) => {
+                  e.preventDefault();
+                  setMenuOpen(false);
+                  if (href.startsWith('#')) {
+                    setTimeout(() => smoothScrollTo(href), 340);
+                  } else if (href.startsWith('http')) {
+                    window.open(href, '_blank', 'noopener,noreferrer');
+                  } else {
+                    setTimeout(() => { window.location.href = href; }, 340);
+                  }
+                };
+                return html`
+                  <a key=${sub} href=${href} onClick=${onClick} className="mob-menu-link"
+                    style=${{ transitionDelay: menuOpen ? delay + 'ms' : '0ms' }}
+                  >${sub}</a>
+                `;
+              })}
+            </div>
+            <hr className="mob-menu-rule" />`
+        )}
 
         <div
           className="mob-menu-bottom"
