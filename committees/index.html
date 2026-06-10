@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Committees — JAGMUN III</title>
+<link rel="icon" type="image/png" href="../assets/jagmun-logo.png" />
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js" crossorigin="anonymous"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+html, body { background: #000; }
+body { font-family: 'Barlow', sans-serif; }
+.rounded { border-radius: 9999px !important; }
+
+/* ===== Liquid glass ===== */
+.liquid-glass { background: rgba(255,255,255,0.01); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: none; box-shadow: inset 0 1px 1px rgba(255,255,255,0.1); position: relative; overflow: hidden; }
+.liquid-glass::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.4px; background: linear-gradient(180deg,rgba(255,255,255,0.45) 0%,rgba(255,255,255,0.15) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,0.15) 80%,rgba(255,255,255,0.45) 100%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+.liquid-glass-strong { background: rgba(255,255,255,0.01); backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px); border: none; box-shadow: 4px 4px 4px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.15); position: relative; overflow: hidden; }
+.liquid-glass-strong::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.4px; background: linear-gradient(180deg,rgba(255,255,255,0.5) 0%,rgba(255,255,255,0.2) 20%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 60%,rgba(255,255,255,0.2) 80%,rgba(255,255,255,0.5) 100%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+
+/* ===== RGB hover ===== */
+@property --rgb-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+.rgb-hover { position: relative; }
+.rgb-hover::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.6px; background: conic-gradient(from var(--rgb-angle),#ff3b8b,#ff8a3d,#ffd166,#6dd76a,#4cc9f0,#8b5cf6,#ff3b8b); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.35s ease; pointer-events: none; z-index: 2; }
+.rgb-hover:hover::after { opacity: 1; animation: rgb-spin 3.2s linear infinite; }
+.rgb-hover:hover { box-shadow: 0 0 22px 2px rgba(140,100,255,0.18),0 0 36px 8px rgba(255,120,180,0.10); }
+@keyframes rgb-spin { to { --rgb-angle: 360deg; } }
+
+/* ===== Nav ===== */
+.nav-trigger { position: relative; }
+.nav-trigger > .caret { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-right: 1.2px solid currentColor; border-bottom: 1.2px solid currentColor; transform: translateY(-2px) rotate(45deg); opacity: 0.55; transition: transform 260ms cubic-bezier(0.22,1,0.36,1), opacity 200ms ease; }
+.nav-trigger.is-open > .caret { transform: translateY(0) rotate(225deg); opacity: 1; }
+.nav-dropdown { position: absolute; top: 100%; padding: 14px 8px 8px; pointer-events: none; visibility: hidden; transform: translate3d(-50%,-4px,0); opacity: 0; transition: opacity 220ms cubic-bezier(0.4,0,0.2,1), transform 280ms cubic-bezier(0.22,1,0.36,1), visibility 0s linear 280ms; z-index: 60; will-change: transform, opacity; backface-visibility: hidden; }
+.nav-dropdown.is-open { opacity: 1; visibility: visible; pointer-events: auto; transform: translate3d(-50%,0,0); transition: opacity 220ms cubic-bezier(0.4,0,0.2,1), transform 280ms cubic-bezier(0.22,1,0.36,1), visibility 0s linear 0s; }
+.nav-dropdown-card { position: relative; min-width: 220px; padding: 6px; border-radius: 16px; background: rgba(20,20,22,0.72); box-shadow: inset 0 1px 1px rgba(255,255,255,0.12),0 12px 32px rgba(0,0,0,0.45),0 2px 6px rgba(0,0,0,0.25); overflow: hidden; transform: translateZ(0); }
+.nav-dropdown.is-open .nav-dropdown-card { background: rgba(20,20,22,0.42); backdrop-filter: blur(24px) saturate(150%); -webkit-backdrop-filter: blur(24px) saturate(150%); }
+.nav-dropdown-card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px; background: linear-gradient(180deg,rgba(255,255,255,0.5) 0%,rgba(255,255,255,0.18) 25%,rgba(255,255,255,0) 45%,rgba(255,255,255,0) 60%,rgba(255,255,255,0.18) 80%,rgba(255,255,255,0.5) 100%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+.nav-dropdown-item { position: relative; display: block; padding: 9px 16px; border-radius: 10px; font-family: 'Barlow', sans-serif; font-size: 11.5px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.72); text-decoration: none; white-space: nowrap; overflow: hidden; opacity: 0; transform: translate3d(-6px,0,0); transition: background-color 180ms ease, color 180ms ease, opacity 280ms ease, transform 320ms cubic-bezier(0.22,1,0.36,1); will-change: transform, opacity; }
+.nav-dropdown.is-open .nav-dropdown-item { opacity: 1; transform: translate3d(0,0,0); }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(1) { transition-delay: 40ms; }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(2) { transition-delay: 90ms; }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(3) { transition-delay: 140ms; }
+.nav-dropdown.is-open .nav-dropdown-item:nth-child(4) { transition-delay: 190ms; }
+.nav-dropdown-item > span.lbl { display: inline-block; transform: translateX(0); transition: transform 220ms cubic-bezier(0.22,1,0.36,1); will-change: transform; }
+.nav-dropdown-item:hover > span.lbl { transform: translateX(6px); }
+.nav-dropdown-item::after { content: ""; position: absolute; left: 8px; top: 50%; transform: translate3d(0,-50%,0) scaleY(0.2); width: 2px; height: 14px; border-radius: 2px; background: #D4A853; opacity: 0; transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22,1,0.36,1); box-shadow: 0 0 8px rgba(212,168,83,0.55); }
+.nav-dropdown-item:hover { color: #fff; background-color: rgba(255,255,255,0.06); }
+.nav-dropdown-item:hover::after { opacity: 1; transform: translate3d(0,-50%,0) scaleY(1); }
+
+/* ===== Mobile nav ===== */
+.nav-desktop-items { display: flex; align-items: center; gap: 20px; }
+.mob-hamburger { display: none; flex-direction: column; justify-content: center; align-items: center; gap: 5.5px; width: 32px; height: 32px; background: none; border: none; padding: 0; cursor: pointer; color: rgba(255,255,255,0.85); z-index: 60; flex-shrink: 0; }
+.mob-bar { width: 18px; height: 1.4px; background: currentColor; border-radius: 2px; transition: transform 320ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease, width 220ms ease; transform-origin: center; }
+.mob-hamburger.is-open .mob-bar:nth-child(1) { transform: translateY(6.9px) rotate(45deg); }
+.mob-hamburger.is-open .mob-bar:nth-child(2) { opacity: 0; width: 0; }
+.mob-hamburger.is-open .mob-bar:nth-child(3) { transform: translateY(-6.9px) rotate(-45deg); }
+@media (max-width: 767px) { .nav-desktop-items { display: none !important; } .mob-hamburger { display: flex; } }
+.mob-menu { position: fixed; inset: 0; z-index: 48; background: rgba(4,4,6,0.97); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); display: flex; flex-direction: column; padding: 110px 36px 52px; opacity: 0; pointer-events: none; transform: translateY(-8px); transition: opacity 320ms cubic-bezier(0.4,0,0.2,1), transform 380ms cubic-bezier(0.22,1,0.36,1); overflow-y: auto; }
+.mob-menu.is-open { opacity: 1; pointer-events: auto; transform: none; }
+.mob-menu-group { margin-bottom: 32px; }
+.mob-menu-group-label { font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #D4A853; margin: 0 0 14px; opacity: 0.85; }
+.mob-menu-link { display: block; font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(26px,6.5vw,40px); color: rgba(245,239,231,0.75); text-decoration: none; line-height: 1.25; margin-bottom: 2px; opacity: 0; transform: translateX(-14px); transition: opacity 380ms cubic-bezier(0.22,1,0.36,1), transform 420ms cubic-bezier(0.22,1,0.36,1), color 200ms ease; }
+.mob-menu.is-open .mob-menu-link { opacity: 1; transform: none; }
+.mob-menu-link:hover { color: #F5EFE7; }
+.mob-menu-rule { width: 100%; height: 1px; border: 0; background: rgba(245,239,231,0.07); margin: 4px 0 32px; }
+.mob-menu-bottom { margin-top: auto; padding-top: 28px; display: flex; align-items: center; gap: 16px; opacity: 0; transform: translateY(8px); transition: opacity 400ms ease, transform 400ms cubic-bezier(0.22,1,0.36,1); }
+.mob-menu.is-open .mob-menu-bottom { opacity: 1; transform: none; }
+
+/* ===== Reveal ===== */
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.95s cubic-bezier(0.22,1,0.36,1), transform 0.95s cubic-bezier(0.22,1,0.36,1); }
+.reveal.in-view { opacity: 1; transform: none; }
+
+/* ===== Footer ===== */
+.site-footer { position: relative; z-index: 10; background: radial-gradient(120% 80% at 50% 120%,rgba(212,168,83,0.08) 0%,rgba(212,168,83,0) 55%),linear-gradient(180deg,#0a0b0f 0%,#050506 100%); padding: clamp(72px,11vh,130px) 24px clamp(44px,6vh,70px); text-align: center; overflow: hidden; }
+.footer-rule { width: min(560px,70%); height: 1px; margin: 0 auto clamp(40px,6vh,64px); border: 0; background: linear-gradient(90deg,rgba(245,239,231,0) 0%,rgba(245,239,231,0.22) 50%,rgba(245,239,231,0) 100%); }
+.footer-contact { font-family: 'Barlow', sans-serif; font-weight: 500; font-size: clamp(12.5px,1vw,15px); letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245,239,231,0.62); margin: 0 0 clamp(26px,5vh,54px); text-wrap: balance; }
+.footer-email { color: #D4A853; text-decoration: none; border-bottom: 1px solid rgba(212,168,83,0.35); padding-bottom: 1px; transition: color 0.22s ease, border-color 0.22s ease; white-space: nowrap; }
+.footer-email:hover { color: #F5EFE7; border-color: rgba(245,239,231,0.6); }
+.footer-wordmark { font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(84px,19vw,300px); line-height: 0.86; letter-spacing: -0.02em; color: #F5EFE7; margin: 0; user-select: none; text-shadow: 0 2px 40px rgba(0,0,0,0.4); }
+.footer-ig { display: inline-flex; margin-top: clamp(28px,4vh,48px); color: rgba(245,239,231,0.55); transition: color 0.22s ease, transform 0.22s ease; }
+.footer-ig:hover { color: #fff; transform: translateY(-2px); }
+.footer-fine { font-family: 'Barlow', sans-serif; font-weight: 400; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(245,239,231,0.32); margin: clamp(34px,5vh,52px) 0 0; }
+
+/* ===== Tier overrides ===== */
+.tier-low .liquid-glass { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(18,18,18,0.90) !important; }
+.tier-low .liquid-glass-strong { backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; }
+.tier-low .nav-dropdown.is-open .nav-dropdown-card { backdrop-filter: blur(10px) !important; -webkit-backdrop-filter: blur(10px) !important; }
+.tier-low .rgb-hover::after { display: none !important; }
+.tier-low .rgb-hover:hover { box-shadow: 0 0 14px 2px rgba(255,255,255,0.10); }
+.tier-low .reveal { transition-duration: 0.4s !important; }
+.tier-mid .liquid-glass { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.tier-mid .liquid-glass-strong { backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+.tier-mid .rgb-hover:hover::after { animation: rgb-spin 5s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .reveal { transition: none !important; opacity: 1 !important; transform: none !important; } .rgb-hover::after { display: none !important; } }
+
+/* ===== Hero ===== */
+.sec-hero { position: relative; min-height: 72vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: clamp(140px,22vh,240px) 24px clamp(80px,12vh,140px); overflow: hidden; background: #000; text-align: center; }
+.sec-hero-orb { position: absolute; top: -15%; left: 50%; transform: translateX(-50%); width: min(960px,160vw); height: min(720px,130vw); background: radial-gradient(ellipse at 50% 28%, rgba(212,168,83,0.17) 0%, rgba(212,168,83,0.07) 38%, transparent 65%); animation: orb-breathe 7s ease-in-out infinite; pointer-events: none; z-index: 0; }
+@keyframes orb-breathe { 0%,100% { opacity: 0.7; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.1); } }
+.sec-hero-particles { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+.sec-hero-particle { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #D4A853; animation: particle-drift var(--pdur, 8s) ease-in-out var(--pdel, 0s) infinite; opacity: 0; }
+@keyframes particle-drift { 0% { opacity: 0; transform: translateY(0) translateX(0) scale(0.5); } 15% { opacity: var(--pop, 0.5); } 50% { opacity: var(--pop, 0.5); transform: translateY(calc(var(--py) * -1px)) translateX(calc(var(--px) * 1px)) scale(1); } 85% { opacity: var(--pop, 0.5); } 100% { opacity: 0; transform: translateY(calc(var(--py) * -2px)) translateX(calc(var(--px) * 0.5px)) scale(0.5); } }
+.sec-hero-eyebrow { font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 11px; letter-spacing: 0.34em; text-transform: uppercase; color: #D4A853; margin: 0 0 20px; position: relative; z-index: 2; opacity: 0; animation: hero-fade-up 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s forwards; }
+.sec-hero-eyebrow::before { content: "\2726"; margin-right: 0.9em; font-size: 0.78em; }
+.sec-hero-eyebrow::after  { content: "\2726"; margin-left:  0.9em; font-size: 0.78em; }
+.sec-hero-title { font-family: 'Instrument Serif', serif; font-style: italic; font-size: clamp(72px,14vw,210px); line-height: 0.9; letter-spacing: -0.02em; color: #F5EFE7; margin: 0; position: relative; z-index: 2; opacity: 0; animation: hero-fade-up 1.1s cubic-bezier(0.22,1,0.36,1) 0.45s forwards; }
+.sec-hero-sub { font-family: 'Barlow', sans-serif; font-weight: 300; font-size: clamp(13px,1.05vw,16px); color: rgba(245,239,231,0.44); margin: 24px 0 0; letter-spacing: 0.16em; text-transform: uppercase; position: relative; z-index: 2; opacity: 0; animation: hero-fade-up 1s cubic-bezier(0.22,1,0.36,1) 0.7s forwards; }
+.sec-hero-line { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: min(600px,80%); height: 1px; background: linear-gradient(90deg, transparent, rgba(212,168,83,0.4), transparent); }
+@keyframes hero-fade-up { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+
+/* ===== Filter bar ===== */
+.committee-filter {
+  position: sticky;
+  top: 70px;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 12px 24px;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-bottom: 1px solid rgba(212,168,83,0.09);
+}
+.committee-filter-inner {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.04);
+  padding: 4px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.filter-btn {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 500;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.48);
+  background: none;
+  border: none;
+  padding: 7px 18px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: color 220ms ease, background 220ms ease;
+  white-space: nowrap;
+}
+.filter-btn:hover { color: rgba(255,255,255,0.8); }
+.filter-btn.is-active { color: #F5EFE7; background: rgba(212,168,83,0.16); }
+
+/* ===== Committee sections ===== */
+.committee-section {
+  position: relative;
+  z-index: 10;
+  background: linear-gradient(180deg, #050507 0%, #0a0b0f 30%, #0a0b0f 100%);
+  padding: clamp(80px,12vh,140px) 24px clamp(60px,9vh,110px);
+}
+.committee-section-inner {
+  max-width: 840px;
+  margin: 0 auto;
+}
+.committee-section-eyebrow {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: 10.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #D4A853;
+  margin: 0 0 clamp(48px,7vh,80px);
+  opacity: 0.8;
+  text-align: center;
+}
+.committee-section-eyebrow::before { content: "\2726"; margin-right: 0.9em; font-size: 0.78em; }
+.committee-section-eyebrow::after  { content: "\2726"; margin-left:  0.9em; font-size: 0.78em; }
+
+/* ===== Individual committee entries ===== */
+.committee-entry { padding: clamp(52px,8vh,100px) 0; }
+.committee-entry + .committee-entry { border-top: 1px solid rgba(255,255,255,0.055); }
+
+.committee-entry-rule {
+  width: 100%; height: 1px; border: 0;
+  background: linear-gradient(90deg, rgba(212,168,83,0.45), rgba(212,168,83,0.1) 55%, transparent);
+  margin: 0 0 clamp(28px,4vh,40px);
+}
+.committee-type-badge {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #D4A853;
+  opacity: 0.82;
+}
+.committee-title {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(42px,7.5vw,96px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: #F5EFE7;
+  margin: 14px 0 0;
+}
+.committee-subtitle {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 300;
+  font-size: clamp(13.5px,1.05vw,16.5px);
+  color: rgba(245,239,231,0.4);
+  margin: 12px 0 0;
+  letter-spacing: 0.06em;
+}
+
+/* ===== Image placeholder ===== */
+.committee-img-wrap {
+  margin: clamp(28px,4.5vh,48px) 0 0;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+}
+.committee-img-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.committee-img-ghost {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(72px,13vw,160px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  user-select: none;
+  color: rgba(212,168,83,0.07);
+  position: relative;
+  z-index: 1;
+}
+.committee-img-shine {
+  position: absolute;
+  top: -60%; bottom: -60%;
+  left: -40%; width: 50%;
+  background: linear-gradient(90deg, transparent, rgba(212,168,83,0.055), transparent);
+  transform: skewX(-16deg);
+  animation: shine-sweep 5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shine-sweep {
+  0%   { left: -60%; }
+  100% { left: 160%; }
+}
+
+/* ===== Committee content (topics / description) ===== */
+.committee-content { margin-top: clamp(28px,4vh,44px); }
+.committee-content-rule { width: 48px; height: 1px; border: 0; background: linear-gradient(90deg, #D4A853, rgba(212,168,83,0)); margin: 0 0 clamp(22px,3.2vh,34px); }
+
+/* Topics (GA) */
+.committee-topics { display: flex; flex-direction: column; gap: clamp(18px,2.5vh,26px); }
+.committee-topic-item { display: flex; gap: clamp(14px,2.5vw,28px); align-items: flex-start; }
+.committee-topic-label { font-family: 'Barlow', sans-serif; font-weight: 600; font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; color: #D4A853; flex-shrink: 0; padding-top: 4px; min-width: 56px; opacity: 0.9; }
+.committee-topic-text { font-family: 'Barlow', sans-serif; font-weight: 300; font-size: clamp(15px,1.15vw,18px); line-height: 1.75; color: rgba(245,239,231,0.75); margin: 0; }
+
+/* Description (Crisis) — drop cap on first letter */
+.committee-desc { font-family: 'Barlow', sans-serif; font-weight: 300; font-size: clamp(15.5px,1.15vw,18px); line-height: 1.88; color: rgba(245,239,231,0.72); margin: 0; text-wrap: pretty; }
+.committee-desc::first-letter { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 3.5em; line-height: 0.78; float: left; margin: 0.04em 0.14em 0 0; color: #D4A853; }
+
+/* Section separator */
+.section-separator { height: 1px; background: linear-gradient(90deg, transparent, rgba(212,168,83,0.18), transparent); margin: 0; }
+
+/* Reveal override for image — slide up */
+.committee-img-wrap.reveal { transform: translateY(28px); }
+.committee-img-wrap.reveal.in-view { transform: none; }
+</style>
+</head>
+<body class="bg-black text-white">
+<div id="root"></div>
+
+<script>
+const DEVICE_TIER = (function detectTier() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'low';
+  const cores = navigator.hardwareConcurrency || 2;
+  const mem = navigator.deviceMemory;
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  const conn = navigator.connection;
+  if (conn && (conn.saveData || conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g')) return 'low';
+  if (isMobile) return cores >= 6 ? 'mid' : 'low';
+  if (mem !== undefined) {
+    if (mem >= 8 && cores >= 8) return 'high';
+    if (mem >= 4 || cores >= 6) return 'mid';
+    return 'low';
+  }
+  return cores >= 8 ? 'high' : cores >= 4 ? 'mid' : 'low';
+})();
+document.body.classList.add('tier-' + DEVICE_TIER);
+
+const html = htm.bind(React.createElement);
+const { useState, useEffect, useLayoutEffect, useRef, useCallback } = React;
+
+const NAV_ITEMS = [
+  { label: 'ABOUT',              items: ['THE SECRETARIAT', 'MUN @ PPCHS'] },
+  { label: 'DELEGATE RESOURCES', items: ['CONFERENCE SCHEDULE', 'DELEGATE HANDBOOK', 'POSITION PAPERS'] },
+  { label: 'COMMITTEES',         items: ['ALL COMMITTEES', 'GENERAL ASSEMBLY', 'SPECIALIZED', 'CRISIS'] },
+];
+const ITEM_HREFS = {
+  'THE SECRETARIAT':     '/secretariat',
+  'CONFERENCE SCHEDULE': '/#schedule',
+  'ALL COMMITTEES':      '/committees',
+  'GENERAL ASSEMBLY':    '/committees#general-assembly',
+  'SPECIALIZED':         '/committees#specialized',
+  'CRISIS':              '/committees#crisis',
+  'REGISTRATION':        'https://docs.google.com/forms/d/e/1FAIpQLSdSQx3ZYI0sBthYWoXN9pQKQ6hqGzLzRkRKu4CM7QMQka8F3Q/viewform?usp=publish-editor',
+};
+
+const COMMITTEES = [
+  {
+    id: 'sochum',
+    section: 'general-assembly',
+    type: 'General Assembly',
+    abbr: 'SOCHUM',
+    title: 'Heritage and Hope',
+    subtitle: 'Social, Humanitarian & Cultural Committee',
+    accentBg: 'linear-gradient(135deg, rgba(212,168,83,0.10) 0%, rgba(212,168,83,0.03) 100%)',
+    photo: null,
+    topics: [
+      { label: 'Topic I',  text: 'Ensuring the inclusion and empowerment of Indigenous Peoples in development processes' },
+      { label: 'Topic II', text: 'Addressing the root causes and consequences of child labor in the modern world' },
+    ],
+    description: null,
+  },
+  {
+    id: 'security-council',
+    section: 'general-assembly',
+    type: 'General Assembly',
+    abbr: 'SC',
+    title: 'Guardians of the Sea',
+    subtitle: 'Security Council',
+    accentBg: 'linear-gradient(135deg, rgba(83,150,212,0.10) 0%, rgba(83,150,212,0.03) 100%)',
+    photo: null,
+    topics: [
+      { label: 'Topic I',  text: 'Protecting Critical Maritime Trade Routes' },
+      { label: 'Topic II', text: 'Stabilizing Coastal Countries to Prevent Piracy' },
+    ],
+    description: null,
+  },
+  {
+    id: 'star-wars',
+    section: 'crisis',
+    type: 'Crisis Committee',
+    abbr: 'SW',
+    title: 'Star Wars: The Galactic Senate',
+    subtitle: 'Crisis Committee',
+    accentBg: 'linear-gradient(135deg, rgba(140,83,212,0.10) 0%, rgba(140,83,212,0.03) 100%)',
+    photo: null,
+    topics: null,
+    description: "The Grand Army of the Republic has been deployed, and the galaxy is officially at war. In this high-stakes Crisis Committee, delegates will step into the repulsorpods of the Galactic Senate to manage a multi-front galactic conflict against the Confederacy of Independent Systems (Separatist Alliance). As planetary representatives, delegates must balance the immediate military necessity of the Clone Wars with the crippling economic and political toll it takes on their home worlds. By the end of the weekend, the committee will either successfully navigate the Republic through the Clone Wars or unknowingly pave the way for the first Galactic Empire.",
+  },
+  {
+    id: 'financial-crisis',
+    section: 'crisis',
+    type: 'Crisis Committee',
+    abbr: 'FC',
+    title: 'The 2008 Financial Crisis',
+    subtitle: 'Crisis Committee',
+    accentBg: 'linear-gradient(135deg, rgba(212,100,83,0.10) 0%, rgba(212,100,83,0.03) 100%)',
+    photo: null,
+    topics: null,
+    description: "The year is 2008, and the global financial system stands on the brink of collapse. In this Crisis Committee, delegates will assume the roles of key decision-makers — from central bank governors and treasury secretaries to executives of major financial institutions — as they navigate the worst economic crisis since the Great Depression. With Lehman Brothers fallen, credit markets frozen, and panic spreading across global markets, delegates must act swiftly and decisively to stabilize the financial system, coordinate international responses, and prevent a complete economic meltdown. Every decision carries consequence: a bailout package that saves one bank may doom another; an interest rate cut that steadies markets may ignite inflation. The fate of the global economy rests in your committee’s hands.",
+  },
+];
+
+const PARTICLES = [
+  { left:'12%', top:'22%', pdur:'9s',  pdel:'0s',   py:60, px:18,  pop:0.55 },
+  { left:'82%', top:'18%', pdur:'11s', pdel:'1.5s', py:80, px:-22, pop:0.45 },
+  { left:'28%', top:'68%', pdur:'8s',  pdel:'3s',   py:50, px:14,  pop:0.5  },
+  { left:'67%', top:'55%', pdur:'13s', pdel:'0.8s', py:70, px:-16, pop:0.4  },
+  { left:'44%', top:'30%', pdur:'10s', pdel:'2.2s', py:55, px:20,  pop:0.6  },
+  { left:'90%', top:'72%', pdur:'7s',  pdel:'4s',   py:45, px:-10, pop:0.35 },
+  { left:'6%',  top:'58%', pdur:'12s', pdel:'1s',   py:65, px:12,  pop:0.5  },
+  { left:'55%', top:'82%', pdur:'9s',  pdel:'3.5s', py:40, px:-18, pop:0.4  },
+];
+
+// ── FilterBar ──
+function FilterBar({ active }) {
+  const filters = [
+    { label: 'All',              id: null },
+    { label: 'General Assembly', id: 'general-assembly' },
+    { label: 'Crisis',           id: 'crisis' },
+  ];
+
+  const scrollTo = (id) => {
+    if (!id) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    const el = document.getElementById(id);
+    if (!el) return;
+    const offset = 130;
+    if (window.__jagLenis) {
+      window.__jagLenis.scrollTo(el, { duration: 1.2, offset: -offset });
+    } else {
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - offset, behavior: 'smooth' });
+    }
+  };
+
+  return html`
+    <div className="committee-filter">
+      <div className="committee-filter-inner">
+        ${filters.map(f => html`
+          <button key=${f.label}
+            className=${"filter-btn" + (active === (f.id || 'all') ? " is-active" : "")}
+            onClick=${() => scrollTo(f.id)}
+          >${f.label}</button>
+        `)}
+      </div>
+    </div>
+  `;
+}
+
+// ── ImagePlaceholder ──
+function ImagePlaceholder({ abbr, accentBg }) {
+  return html`
+    <div className="committee-img-wrap reveal">
+      <div className="committee-img-placeholder" style=${{ background: accentBg }}>
+        <span className="committee-img-ghost">${abbr}</span>
+        <div className="committee-img-shine" aria-hidden="true"></div>
+      </div>
+    </div>
+  `;
+}
+
+// ── TopicsList ──
+function TopicsList({ topics }) {
+  return html`
+    <div className="committee-content reveal" style=${{ transitionDelay: '0.1s' }}>
+      <hr className="committee-content-rule" />
+      <div className="committee-topics">
+        ${topics.map((t, i) => html`
+          <div key=${i} className="committee-topic-item">
+            <span className="committee-topic-label">${t.label}</span>
+            <p className="committee-topic-text">${t.text}</p>
+          </div>
+        `)}
+      </div>
+    </div>
+  `;
+}
+
+// ── Description ──
+function Description({ text }) {
+  return html`
+    <div className="committee-content reveal" style=${{ transitionDelay: '0.1s' }}>
+      <hr className="committee-content-rule" />
+      <p className="committee-desc">${text}</p>
+    </div>
+  `;
+}
+
+// ── CommitteeEntry ──
+function CommitteeEntry({ committee }) {
+  return html`
+    <article className="committee-entry">
+      <hr className="committee-entry-rule reveal" />
+      <p className="committee-type-badge reveal" style=${{ transitionDelay: '0.05s' }}>${committee.type}</p>
+      <h2 className="committee-title reveal" style=${{ transitionDelay: '0.1s' }}>${committee.title}</h2>
+      <p className="committee-subtitle reveal" style=${{ transitionDelay: '0.15s' }}>${committee.subtitle}</p>
+      <${ImagePlaceholder} abbr=${committee.abbr} accentBg=${committee.accentBg} />
+      ${committee.topics
+        ? html`<${TopicsList} topics=${committee.topics} />`
+        : html`<${Description} text=${committee.description} />`
+      }
+    </article>
+  `;
+}
+
+// ── NavBar ──
+function NavBar() {
+  const [openIdx, setOpenIdx] = useState(null);
+  const [positions, setPositions] = useState([]);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navRef = useRef(null);
+  const triggerRefs = useRef([]);
+  const closeTimer = useRef(null);
+
+  useEffect(() => { document.body.style.overflow = menuOpen ? 'hidden' : ''; return () => { document.body.style.overflow = ''; }; }, [menuOpen]);
+
+  const measurePositions = useCallback(() => {
+    if (!navRef.current) return;
+    const navRect = navRef.current.getBoundingClientRect();
+    setPositions(NAV_ITEMS.map((_, i) => { const el = triggerRefs.current[i]; if (!el) return 0; const r = el.getBoundingClientRect(); return r.left + r.width / 2 - navRect.left; }));
+  }, []);
+
+  useLayoutEffect(() => {
+    measurePositions();
+    window.addEventListener('resize', measurePositions);
+    const f = setTimeout(measurePositions, 600);
+    return () => { window.removeEventListener('resize', measurePositions); clearTimeout(f); };
+  }, [measurePositions]);
+
+  const openMenu = (idx) => { clearTimeout(closeTimer.current); setOpenIdx(idx); };
+  const scheduleClose = () => { closeTimer.current = setTimeout(() => setOpenIdx(null), 180); };
+  const cancelClose = () => clearTimeout(closeTimer.current);
+
+  let linkIdx = 0;
+  const mobGroups = NAV_ITEMS.map(g => ({ label: g.label, links: g.items.map(sub => ({ sub, delay: (++linkIdx) * 45 + 40 })) }));
+  const mobBottomDelay = linkIdx * 45 + 100;
+
+  return html`
+    <${React.Fragment}>
+      <nav ref=${navRef} className="fixed top-5 left-1/2 -translate-x-1/2 z-50 whitespace-nowrap">
+        <div className="liquid-glass flex items-center gap-3 rounded px-4 py-2">
+          <${LogoMark} />
+          <div className="nav-desktop-items">
+            ${NAV_ITEMS.map((item, idx) => html`
+              <a key=${item.label} href="#"
+                ref=${el => { triggerRefs.current[idx] = el; }}
+                onMouseEnter=${() => openMenu(idx)}
+                onMouseLeave=${scheduleClose}
+                className=${"nav-trigger text-sm font-body font-light transition-colors duration-200 " + (openIdx === idx ? 'is-open text-white' : 'text-white/70 hover:text-white')}
+              >${item.label}<span className="caret" aria-hidden="true"></span></a>
+            `)}
+            <a href=${ITEM_HREFS['REGISTRATION']} target="_blank" rel="noopener noreferrer"
+              className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-4 py-1.5 transition-all duration-200 hover:scale-[1.04] active:scale-[0.97]">REGISTRATION</a>
+            <a href="https://www.instagram.com/jagmun_ppchs/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-white/70 hover:text-white transition-colors duration-200 flex items-center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            </a>
+          </div>
+          <button type="button" className=${"mob-hamburger" + (menuOpen ? " is-open" : "")} onClick=${() => setMenuOpen(m => !m)} aria-label=${menuOpen ? "Close menu" : "Open menu"} aria-expanded=${menuOpen}>
+            <span className="mob-bar"></span><span className="mob-bar"></span><span className="mob-bar"></span>
+          </button>
+        </div>
+        ${NAV_ITEMS.map((item, idx) => html`
+          <div key=${item.label} className=${"nav-dropdown" + (openIdx === idx ? " is-open" : "")} style=${{ left: positions[idx] || 0 }}
+            onMouseEnter=${() => { cancelClose(); openMenu(idx); }} onMouseLeave=${scheduleClose} aria-hidden=${openIdx !== idx}>
+            <div className="nav-dropdown-card">
+              ${item.items.map(sub => { const href = ITEM_HREFS[sub] || '#'; const isExternal = href.startsWith('http'); return html`
+                <a key=${sub} href=${href} className="nav-dropdown-item" target=${isExternal ? '_blank' : undefined} rel=${isExternal ? 'noopener noreferrer' : undefined}>
+                  <span className="lbl">${sub}</span>
+                </a>`; })}
+            </div>
+          </div>
+        `)}
+      </nav>
+      <div className=${"mob-menu" + (menuOpen ? " is-open" : "")} aria-hidden=${!menuOpen}>
+        ${mobGroups.map(group => html`
+          <div key=${group.label} className="mob-menu-group">
+            <p className="mob-menu-group-label">${group.label}</p>
+            ${group.links.map(({ sub, delay }) => { const href = ITEM_HREFS[sub] || '#'; const isExternal = href.startsWith('http'); return html`
+              <a key=${sub} href=${href} className="mob-menu-link" style=${{ transitionDelay: menuOpen ? delay + 'ms' : '0ms' }}
+                target=${isExternal ? '_blank' : undefined} rel=${isExternal ? 'noopener noreferrer' : undefined}
+                onClick=${() => setMenuOpen(false)}>${sub}</a>`; })}
+          </div>
+          <hr className="mob-menu-rule" />`)}
+        <div className="mob-menu-bottom" style=${{ transitionDelay: menuOpen ? mobBottomDelay + 'ms' : '0ms' }}>
+          <a href=${ITEM_HREFS['REGISTRATION']} target="_blank" rel="noopener noreferrer" className="rgb-hover liquid-glass-strong text-sm font-body font-medium text-white rounded px-5 py-2.5 transition-all duration-200 active:scale-[0.97]">REGISTRATION</a>
+          <a href="https://www.instagram.com/jagmun_ppchs/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-white/55 hover:text-white transition-colors duration-200 flex items-center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+          </a>
+        </div>
+      </div>
+    </${React.Fragment}>
+  `;
+}
+
+function LogoMark() {
+  return html`
+    <a href="/" style=${{ display:'block', flexShrink:0, lineHeight:0 }}>
+      <img src="../assets/jagmun-logo.png" alt="JagMUN" width="52" height="52" draggable="false"
+        style=${{ width:52, height:52, objectFit:'contain', display:'block', userSelect:'none', marginLeft:-4, marginRight:-4, filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }} />
+    </a>
+  `;
+}
+
+function SiteFooter() {
+  return html`
+    <footer className="site-footer">
+      <hr className="footer-rule reveal" />
+      <p className="footer-contact reveal" style=${{ transitionDelay:'0.06s' }}>
+        For any questions, please reach out to${' '}
+        <a className="footer-email" href="mailto:jagmun.ppchs@gmail.com">jagmun.ppchs@gmail.com</a>
+      </p>
+      <h2 className="footer-wordmark reveal" style=${{ transitionDelay:'0.12s' }}>JAGMUN III</h2>
+      <a className="footer-ig reveal" style=${{ transitionDelay:'0.18s' }} href="https://www.instagram.com/jagmun_ppchs/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+      </a>
+      <p className="footer-fine reveal" style=${{ transitionDelay:'0.22s' }}>JAGMUN III · September 19–20, 2026</p>
+    </footer>
+  `;
+}
+
+// ── App ──
+function App() {
+  const [activeFilter, setActiveFilter] = useState('all');
+
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll('.reveal'));
+    if (!els.length) return;
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); } }),
+        { threshold: 0.1, rootMargin: '0px 0px -6% 0px' }
+      );
+      els.forEach(el => io.observe(el));
+      return () => io.disconnect();
+    }
+  }, []);
+
+  useEffect(() => {
+    const sections = ['general-assembly', 'crisis'].map(id => document.getElementById(id)).filter(Boolean);
+    if (!sections.length) return;
+    const io = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) setActiveFilter(e.target.id); }),
+      { rootMargin: '-35% 0px -55% 0px' }
+    );
+    sections.forEach(s => io.observe(s));
+    const onScroll = () => { if (window.scrollY < window.innerHeight * 0.9) setActiveFilter('all'); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => { io.disconnect(); window.removeEventListener('scroll', onScroll); };
+  }, []);
+
+  useEffect(() => {
+    if (DEVICE_TIER === 'low') return;
+    const L = window.Lenis; if (!L) return;
+    const lenis = new L({ duration: DEVICE_TIER === 'high' ? 1.15 : 1.0, smoothWheel: true, wheelMultiplier: 0.9 });
+    window.__jagLenis = lenis;
+    let id; const raf = t => { lenis.raf(t); id = requestAnimationFrame(raf); };
+    id = requestAnimationFrame(raf);
+    return () => { cancelAnimationFrame(id); lenis.destroy(); window.__jagLenis = null; };
+  }, []);
+
+  const gaSections    = COMMITTEES.filter(c => c.section === 'general-assembly');
+  const crisisSections = COMMITTEES.filter(c => c.section === 'crisis');
+
+  return html`
+    <div className="bg-black text-white overflow-x-hidden">
+      <${NavBar} />
+
+      <div className="sec-hero">
+        <div className="sec-hero-orb" aria-hidden="true"></div>
+        ${DEVICE_TIER !== 'low' && html`
+          <div className="sec-hero-particles" aria-hidden="true">
+            ${PARTICLES.map((p, i) => html`
+              <div key=${i} className="sec-hero-particle" style=${{ left:p.left, top:p.top, '--pdur':p.pdur, '--pdel':p.pdel, '--py':p.py, '--px':p.px, '--pop':p.pop }}></div>
+            `)}
+          </div>
+        `}
+        <p className="sec-hero-eyebrow">JAGMUN III · 2026</p>
+        <h1 className="sec-hero-title">Committees</h1>
+        <p className="sec-hero-sub">September 19–20, 2026</p>
+        <div className="sec-hero-line" aria-hidden="true"></div>
+      </div>
+
+      <${FilterBar} active=${activeFilter} />
+
+      <section id="general-assembly" style=${{ background:'linear-gradient(180deg,#050507 0%,#0a0b0f 100%)', padding:'clamp(80px,12vh,140px) 24px clamp(60px,9vh,110px)', position:'relative', zIndex:10 }}>
+        <div style=${{ maxWidth:'840px', margin:'0 auto' }}>
+          <p className="committee-section-eyebrow reveal">General Assembly</p>
+          ${gaSections.map(c => html`<${CommitteeEntry} key=${c.id} committee=${c} />`)}
+        </div>
+      </section>
+
+      <div className="section-separator"></div>
+
+      <section id="crisis" style=${{ background:'linear-gradient(180deg,#050507 0%,#0a0b0f 100%)', padding:'clamp(80px,12vh,140px) 24px clamp(80px,12vh,140px)', position:'relative', zIndex:10 }}>
+        <div style=${{ maxWidth:'840px', margin:'0 auto' }}>
+          <p className="committee-section-eyebrow reveal">Crisis Committee</p>
+          ${crisisSections.map(c => html`<${CommitteeEntry} key=${c.id} committee=${c} />`)}
+        </div>
+      </section>
+
+      <${SiteFooter} />
+    </div>
+  `;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App} />`);
+</script>
+</body>
+</html>
