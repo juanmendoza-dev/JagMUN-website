@@ -440,7 +440,7 @@ const COMMITTEES = [
     title: 'Heritage and Hope',
     subtitle: 'Social, Humanitarian & Cultural Committee',
     accentBg: 'linear-gradient(135deg, rgba(212,168,83,0.12) 0%, rgba(212,168,83,0.04) 100%)',
-    photo: null,
+    photo: '../assets/SOCHUM.jpg',
     topics: [
       { label: 'Topic I',  text: 'Ensuring the inclusion and empowerment of Indigenous Peoples in development processes' },
       { label: 'Topic II', text: 'Addressing the root causes and consequences of child labor in the modern world' },
@@ -466,7 +466,7 @@ const COMMITTEES = [
     title: 'Star Wars: The Galactic Senate',
     subtitle: 'Crisis Committee',
     accentBg: 'linear-gradient(135deg, rgba(140,83,212,0.12) 0%, rgba(140,83,212,0.04) 100%)',
-    photo: null,
+    photo: '../assets/starWars.jpg',
     topics: null,
     description: "The Grand Army of the Republic has been deployed, and the galaxy is officially at war. In this high-stakes Crisis Committee, delegates will step into the repulsorpods of the Galactic Senate to manage a multi-front galactic conflict against the Confederacy of Independent Systems (Separatist Alliance). As planetary representatives, delegates must balance the immediate military necessity of the Clone Wars with the crippling economic and political toll it takes on their home worlds. By the end of the weekend, the committee will either successfully navigate the Republic through the Clone Wars or unknowingly pave the way for the first Galactic Empire.",
   },
@@ -476,7 +476,7 @@ const COMMITTEES = [
     title: 'The 2008 Financial Crisis',
     subtitle: 'Crisis Committee',
     accentBg: 'linear-gradient(135deg, rgba(212,100,83,0.12) 0%, rgba(212,100,83,0.04) 100%)',
-    photo: null,
+    photo: '../assets/finCrisis.jpg',
     topics: null,
     description: "The year is 2008, and the global financial system stands on the brink of collapse. In this Crisis Committee, delegates will assume the roles of key decision-makers — from central bank governors and treasury secretaries to executives of major financial institutions — as they navigate the worst economic crisis since the Great Depression. With Lehman Brothers fallen, credit markets frozen, and panic spreading across global markets, delegates must act swiftly and decisively to stabilize the financial system, coordinate international responses, and prevent a complete economic meltdown. Every decision carries consequence: a bailout package that saves one bank may doom another; an interest rate cut that steadies markets may ignite inflation. The fate of the global economy rests in your committee's hands.",
   },
@@ -504,7 +504,10 @@ function CommitteeCard({ committee, onOpen, delay }) {
       aria-label=${'View ' + committee.title}
     >
       <div className="card-bg" style=${{ background: committee.accentBg }}>
-        <span className="card-ghost">${committee.abbr}</span>
+        ${committee.photo
+          ? html`<img src=${committee.photo} alt=${committee.title} style=${{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center', display:'block' }} />`
+          : html`<span className="card-ghost">${committee.abbr}</span>`
+        }
         <div className="card-shine" aria-hidden="true"></div>
       </div>
       <div className="card-gradient" aria-hidden="true"></div>
@@ -562,10 +565,14 @@ function CommitteeModal({ committee, onClose }) {
         </button>
 
         <div className="modal-img-wrap">
-          <div className="modal-img-placeholder" style=${{ background: committee.accentBg }}>
-            <span className="modal-img-ghost">${committee.abbr}</span>
-            <div className="card-shine" aria-hidden="true"></div>
-          </div>
+          ${committee.photo
+            ? html`<img src=${committee.photo} alt=${committee.title} style=${{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center', display:'block' }} />`
+            : html`
+              <div className="modal-img-placeholder" style=${{ background: committee.accentBg }}>
+                <span className="modal-img-ghost">${committee.abbr}</span>
+                <div className="card-shine" aria-hidden="true"></div>
+              </div>`
+          }
         </div>
 
         <div className="modal-body">
