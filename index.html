@@ -203,6 +203,51 @@ body { font-family: 'Barlow', sans-serif; }
   .page-flip-hover::before { display: none !important; }
 }
 
+/* Gavel-tap hover (Committees) */
+.gavel-hover { position: relative; transform-origin: 50% 85%; }
+.gavel-hover::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 70%;
+  height: 6px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 70%);
+  transform: translateX(-50%) scaleX(0.8);
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.gavel-hover:hover {
+  animation: gavel-tap 0.55s cubic-bezier(0.36, 0, 0.66, -0.56) 1;
+}
+.gavel-hover:hover::after {
+  opacity: 1;
+  animation: gavel-shadow 0.55s ease-out 1;
+}
+@keyframes gavel-tap {
+  0%   { transform: scaleY(1) scaleX(1); }
+  12%  { transform: scaleY(0.86) scaleX(1.05); }
+  24%  { transform: scaleY(1.04) scaleX(0.98); }
+  40%  { transform: scaleY(1) scaleX(1); }
+  52%  { transform: scaleY(0.9) scaleX(1.04); }
+  64%  { transform: scaleY(1.03) scaleX(0.99); }
+  100% { transform: scaleY(1) scaleX(1); }
+}
+@keyframes gavel-shadow {
+  0%   { transform: translateX(-50%) scaleX(0.8); opacity: 0; }
+  12%  { transform: translateX(-50%) scaleX(1.05); opacity: 0.9; }
+  40%  { transform: translateX(-50%) scaleX(0.85); opacity: 0.3; }
+  52%  { transform: translateX(-50%) scaleX(1); opacity: 0.7; }
+  100% { transform: translateX(-50%) scaleX(0.85); opacity: 0; }
+}
+.tier-low .gavel-hover:hover { animation: none; }
+.tier-low .gavel-hover:hover::after { animation: none; opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .gavel-hover:hover { animation: none; }
+  .gavel-hover:hover::after { animation: none; opacity: 0; }
+}
+
 /* ---------- Loading screen ---------- */
 .loading-overlay {
   position: fixed;
@@ -2078,8 +2123,11 @@ function App() {
             </a>
             <a
               href="/committees"
-              className="liquid-glass group text-white text-sm font-body font-medium rounded px-6 py-3 active:scale-[0.97] transition-all duration-200 hover:scale-[1.03] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_0_20px_2px_rgba(255,255,255,0.07)]"
-            >Committees</a>
+              className="gavel-hover group relative bg-white text-black text-sm font-body font-medium rounded px-6 py-3 overflow-hidden active:scale-[0.97] transition-all duration-200 hover:scale-[1.03]"
+            >
+              <span className="relative z-10">Committees</span>
+              <span className="absolute inset-0 bg-gradient-to-b from-white to-white/85 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+            </a>
           </div>
 
           <p className="text-sm font-body font-light text-white/75 max-w-[220px] leading-relaxed text-right"></p>
